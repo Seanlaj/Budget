@@ -59,7 +59,7 @@ button {
 
   .table-data {
     table-layout: fixed;
-    width: 375px;
+    width: 360px;
   }
 
   .row>* {
@@ -67,7 +67,7 @@ button {
   }
 
   #newExpense {
-    width: 375px;
+    width: 360px;
   }
 
   .expense-container{
