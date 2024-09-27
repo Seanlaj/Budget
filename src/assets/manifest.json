@@ -12,16 +12,16 @@
     "related_applications": [
         {
             "platform": "webapp",
-            "url": "/manifest.json"
+            "url": "./manifest.json"
         }
     ],
     "icons": [
         {
-            "src": "./dollar-big.png",
+            "src": "./budget_icon_large.png",
             "sizes": "512x512"
         },
         {
-            "src": "./dollar-small.png",
+            "src": "./budget_icon_small.png",
             "sizes": "144x144",
             "type": "image/png",
             "purpose": "maskable"
