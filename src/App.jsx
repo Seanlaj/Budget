@@ -25,14 +25,14 @@ function App() {
     <>
       <Title/>
       <div className='row'>
-        <div className='col-md-6 ml-2 d-flex'>
+        <div className='col-md-6 expense-container'>
           <Expense expenseSaved={HandleExpenseUpdate} />
         </div>
-        <div className='col-md-6 mv-3'>
+        <div className='col-md-6'>
           <RemainingBalance expenseData={expenseData} />
         </div>
       </div>
-      <div>
+      <div className='row'>
         <Table tableData={expenseData} />
       </div>
     </>
