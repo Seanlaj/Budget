@@ -32,7 +32,7 @@ export default function Expense({ expenseSaved }) {
                 </div>
                 <div className="form-group mt-2">
                     <label htmlFor="amount">Amount</label>
-                    <input type="number" className="form-control" name="Amount" id="amount" min="0" step=".01" required />
+                    <input type="number" className="form-control" name="Amount" id="amount" min="0" step=".01" pattern="\d*" required />
                 </div>
                 <div className="form-group mt-2">
                     <label htmlFor="store">Store</label>
