@@ -17,11 +17,11 @@
     ],
     "icons": [
         {
-            "src": "./budget_icon_large.png",
+            "src": "./BudgetIcon_large.png",
             "sizes": "512x512"
         },
         {
-            "src": "./budget_icon_small.png",
+            "src": "./BudgetIcon_small.png",
             "sizes": "144x144",
             "type": "image/png",
             "purpose": "maskable"
