@@ -17,11 +17,11 @@
     ],
     "icons": [
         {
-            "src": "./dollar-big.png",
+            "src": "./budgetlarge.png",
             "sizes": "512x512"
         },
         {
-            "src": "./dollar-small.png",
+            "src": "./budgetsmall.png",
             "sizes": "144x144",
             "type": "image/png",
             "purpose": "maskable"
