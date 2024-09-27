@@ -4,11 +4,17 @@
     "short_name": "LaJeunesse Budget",
     "description": "A collection of resources to get the local help you need.",
     "start_url": "/",
-    "background_color": "#3e3499",
-    "theme_color": "#3e3499",
+    "background_color": "#470d83",
+    "theme_color": "#470d83",
     "orientation": "any",
     "display": "standalone",
     "prefer_related_applications": false,
+    "related_applications": [
+        {
+            "platform": "webapp",
+            "url": "/assets/manifest-DAUafHoP.json"
+        }
+    ],
     "icons": [
         {
             "src": "./dollar-big.png",

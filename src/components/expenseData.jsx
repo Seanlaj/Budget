@@ -10,7 +10,6 @@ export async function getTableData(setExpenseData) {
     const jsonData = JSON.parse(text);
 
     const expenseArray = formatData(jsonData);
-    console.log(expenseArray);
 
     setExpenseData(expenseArray);
 
