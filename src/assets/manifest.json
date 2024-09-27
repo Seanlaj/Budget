@@ -1,0 +1,39 @@
+{
+    "lang": "en-us",
+    "name": "LaJeunesse Budget",
+    "short_name": "LaJeunesse Budget",
+    "description": "A collection of resources to get the local help you need.",
+    "start_url": "/",
+    "background_color": "#3e3499",
+    "theme_color": "#3e3499",
+    "orientation": "any",
+    "display": "standalone",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "./dollar-big.png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "./dollar-small.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "./screenshot.png",
+            "sizes": "1280x720",
+            "type": "image/webp",
+            "label": "Budget App Home Screen"
+        },
+        {
+            "src": "./screenshot.png",
+            "sizes": "1280x720",
+            "type": "image/webp",
+            "form_factor": "wide",
+            "label": "Budget App Home Screen"
+        }
+    ]
+}
