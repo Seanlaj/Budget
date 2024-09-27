@@ -12,7 +12,7 @@
     "related_applications": [
         {
             "platform": "webapp",
-            "url": "/manigest.json"
+            "url": "/manifest.json"
         }
     ],
     "icons": [
