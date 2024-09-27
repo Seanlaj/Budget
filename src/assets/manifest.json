@@ -12,16 +12,16 @@
     "related_applications": [
         {
             "platform": "webapp",
-            "url": "/"
+            "url": "/manigest.json"
         }
     ],
     "icons": [
         {
-            "src": "/assets/BudgetIcon_large.png",
+            "src": "./BudgetIcon-large.png",
             "sizes": "512x512"
         },
         {
-            "src": "/assets/BudgetIcon_small.png",
+            "src": "./BudgetIcon-small.png",
             "sizes": "144x144",
             "type": "image/png",
             "purpose": "maskable"
