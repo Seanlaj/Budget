@@ -12,7 +12,7 @@
     "related_applications": [
         {
             "platform": "webapp",
-            "url": "/assets/manifest-Cxe9E1HR.json"
+            "url": "/manifest.json"
         }
     ],
     "icons": [
