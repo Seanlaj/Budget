@@ -60,6 +60,7 @@ button {
   .table-data {
     table-layout: fixed;
     width: 360px;
+    /* margin: 0rem 4rem; */
   }
 
   .row>* {
@@ -68,6 +69,8 @@ button {
 
   #newExpense {
     width: 360px;
+    margin: auto;
+    /* margin: 0rem 4rem; */
   }
 
   .expense-container{
