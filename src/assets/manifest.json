@@ -17,25 +17,25 @@
     ],
     "icons": [
         {
-            "src": "icons/budgeticonlarge.png",
+            "src": "../icons/budgeticonlarge.png",
             "sizes": "512x512",
             "type": "image/png"
         },
         {
-            "src": "icons/budgeticon.png",
+            "src": "../icons/budgeticon.png",
             "sizes": "144x144",
             "type": "image/png"
         }
     ],
     "screenshots": [
         {
-            "src": "icons/screenshot.png",
+            "src": "../icons/screenshot.png",
             "sizes": "1280x720",
             "type": "image/webp",
             "label": "Budget App Home Screen"
         },
         {
-            "src": "icons/screenshot.png",
+            "src": "../icons/screenshot.png",
             "sizes": "1280x720",
             "type": "image/webp",
             "form_factor": "wide",
