@@ -14,16 +14,20 @@ function App() {
   const [expenseData, setExpenseData] = useState([]);
 
   useEffect(() => {
-    getTableData(setExpenseData)
+    getTableData(setExpenseData, null)
   }, []);
 
-  function HandleExpenseUpdate() {
-    getTableData(setExpenseData)
+  function HandleExpenseUpdate(newMonth, newYear) {
+    if (newMonth !== null && newYear !== null) {
+      getTableData(setExpenseData, newMonth, newYear);
+    } else {
+      getTableData(setExpenseData, null, null);
+    }
   }
 
   return (
     <>
-      <Title/>
+      <Title getExpenseData={HandleExpenseUpdate}/>
       <div className='row'>
         <div className='col-md-6 expense-container'>
           <Expense expenseSaved={HandleExpenseUpdate} />
@@ -32,7 +36,7 @@ function App() {
           <RemainingBalance expenseData={expenseData} />
         </div>
       </div>
-      <div className='row'>
+      <div className='row' id="renderedData">
         <Table tableData={expenseData} />
       </div>
     </>

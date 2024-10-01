@@ -12,7 +12,7 @@ export default function Expense({ expenseSaved }) {
 
         const formData = new FormData(form);
 
-        fetch("https://script.google.com/macros/s/AKfycbxViI9Amho71k6oPvyYpo-bT-I3AfzmYByiLMs-nkAnP-yJgwdcCx0LdnImQf5nF7Ea/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbw6gTY9uqyAC0RZTB12AP6fWXNCFzAGk4UOMMijaNd_aYqlnhdaJRZig4yUdlbxIsxG/exec", {
             method: "POST",
             body: formData,
             mode: "no-cors"

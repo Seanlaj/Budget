@@ -1,7 +1,13 @@
-export async function getTableData(setExpenseData) {
+export async function getTableData(setExpenseData, month, year) {
   try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbxViI9Amho71k6oPvyYpo-bT-I3AfzmYByiLMs-nkAnP-yJgwdcCx0LdnImQf5nF7Ea/exec");
 
+    let response = "";
+    if (month !== null && year !== null) {
+      response = await fetch(`https://script.google.com/macros/s/AKfycbw6gTY9uqyAC0RZTB12AP6fWXNCFzAGk4UOMMijaNd_aYqlnhdaJRZig4yUdlbxIsxG/exec?month=${month}&year=${year}`);
+    } else {
+      response = await fetch("https://script.google.com/macros/s/AKfycbw6gTY9uqyAC0RZTB12AP6fWXNCFzAGk4UOMMijaNd_aYqlnhdaJRZig4yUdlbxIsxG/exec");
+    }
+    
     if (!response.ok) {
       console.log("Error!");
     }

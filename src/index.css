@@ -59,7 +59,7 @@ button {
 
   .table-data {
     table-layout: fixed;
-    width: 360px;
+    width: 450px;
     /* margin: 0rem 4rem; */
   }
 
@@ -68,7 +68,7 @@ button {
   }
 
   #newExpense {
-    width: 360px;
+    width: 450px;
     margin: auto;
     /* margin: 0rem 4rem; */
   }
@@ -81,5 +81,17 @@ button {
     overflow: auto;
     word-wrap: break-word;
     font-size: small;
+  }
+}
+
+.month-change {
+  border-radius: 25px;
+  border-color: white;
+  background-color: #39096a!important;
+}
+
+@media (min-width: 900px) {
+  #renderedData {
+    width: 900px;
   }
 }
