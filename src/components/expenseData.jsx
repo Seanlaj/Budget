@@ -17,15 +17,15 @@ export async function getTableData(setExpenseData, month, year, setMonth, setYea
 
     const expenseArray = formatData(jsonData);
 
-    setExpenseData(expenseArray);
-    setMonth(new Date(Date.parse(month + 1,)).getMonth());
-    setYear(year);
-
     const saveButton = document.getElementById("saveExpense");
     saveButton.style.display = "inline";
 
     const savingButton = document.getElementById("expenseSaving");
     savingButton.style.display = "none";
+    
+    setExpenseData(expenseArray);
+    setMonth(new Date(Date.parse(month + 1,)).getMonth());
+    setYear(year);
 
   } catch (error) {
     console.error(error.message);
