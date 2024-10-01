@@ -12,14 +12,15 @@ export default function Expense({ expenseSaved }) {
 
         const formData = new FormData(form);
 
-        fetch("https://script.google.com/macros/s/AKfycbw6gTY9uqyAC0RZTB12AP6fWXNCFzAGk4UOMMijaNd_aYqlnhdaJRZig4yUdlbxIsxG/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec", {
             method: "POST",
             body: formData,
             mode: "no-cors"
         });
 
+        let expenseDate = new Date(formData.get("Date") + "GMT-0700");
         form.reset();
-        expenseSaved();
+        expenseSaved(expenseDate.toLocaleString('default', { month: 'long' }), expenseDate.getFullYear().toString());
     }
 
     return (

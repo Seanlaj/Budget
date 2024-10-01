@@ -12,14 +12,17 @@ import Title from './components/Title';
 
 function App() {
   const [expenseData, setExpenseData] = useState([]);
+  const d = new Date();
+  const [month, setMonth] = useState(d.getMonth());
+  const [year, setYear] = useState(d.getFullYear());
 
   useEffect(() => {
     getTableData(setExpenseData, null)
   }, []);
 
   function HandleExpenseUpdate(newMonth, newYear) {
-    if (newMonth !== null && newYear !== null) {
-      getTableData(setExpenseData, newMonth, newYear);
+    if (newMonth !== undefined && newYear !== undefined) {
+      getTableData(setExpenseData, newMonth, newYear, setMonth, setYear);
     } else {
       getTableData(setExpenseData, null, null);
     }
@@ -27,7 +30,7 @@ function App() {
 
   return (
     <>
-      <Title getExpenseData={HandleExpenseUpdate}/>
+      <Title getExpenseData={HandleExpenseUpdate} month={month} year={year} setMonth={setMonth} setYear={setYear} />
       <div className='row'>
         <div className='col-md-6 expense-container'>
           <Expense expenseSaved={HandleExpenseUpdate} />

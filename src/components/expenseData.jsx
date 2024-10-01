@@ -1,11 +1,11 @@
-export async function getTableData(setExpenseData, month, year) {
+export async function getTableData(setExpenseData, month, year, setMonth, setYear) {
   try {
 
     let response = "";
     if (month !== null && year !== null) {
-      response = await fetch(`https://script.google.com/macros/s/AKfycbw6gTY9uqyAC0RZTB12AP6fWXNCFzAGk4UOMMijaNd_aYqlnhdaJRZig4yUdlbxIsxG/exec?month=${month}&year=${year}`);
+      response = await fetch(`https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec?month=${month}&year=${year}`);
     } else {
-      response = await fetch("https://script.google.com/macros/s/AKfycbw6gTY9uqyAC0RZTB12AP6fWXNCFzAGk4UOMMijaNd_aYqlnhdaJRZig4yUdlbxIsxG/exec");
+      response = await fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec");
     }
     
     if (!response.ok) {
@@ -18,6 +18,8 @@ export async function getTableData(setExpenseData, month, year) {
     const expenseArray = formatData(jsonData);
 
     setExpenseData(expenseArray);
+    setMonth(new Date(Date.parse(month + 1,)).getMonth());
+    setYear(year);
 
     const saveButton = document.getElementById("saveExpense");
     saveButton.style.display = "inline";
