@@ -1,35 +1,47 @@
-export async function getTableData(setExpenseData, month, year, setMonth, setYear) {
+export function getTableData(setExpenseData, month, year, setMonth, setYear) {
   try {
 
-    let response = "";
     if (month !== null && year !== null) {
-      response = await fetch(`https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec?month=${month}&year=${year}`);
+      let dataCall = fetch(`https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec?month=${month}&year=${year}`);
+
+      dataCall.then(res => res.json()).then(res => {
+
+        const expenseArray = formatData(res);
+
+        const saveButton = document.getElementById("saveExpense");
+        saveButton.style.display = "inline";
+
+        const savingButton = document.getElementById("expenseSaving");
+        savingButton.style.display = "none";
+
+        setExpenseData(expenseArray);
+
+        if (month !== null && year !== undefined) {
+          setMonth(new Date(Date.parse(month + 1,)).getMonth());
+          setYear(year);
+        }
+      });
     } else {
-      response = await fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec");
+      let dataCall = fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec");
+      
+      dataCall.then(res => res.json()).then(res => {
+
+        const expenseArray = formatData(res);
+
+        const saveButton = document.getElementById("saveExpense");
+        saveButton.style.display = "inline";
+
+        const savingButton = document.getElementById("expenseSaving");
+        savingButton.style.display = "none";
+
+        setExpenseData(expenseArray);
+
+        if (month !== null && year !== undefined) {
+          setMonth(new Date(Date.parse(month + 1,)).getMonth());
+          setYear(year);
+        }
+      });
     }
-
-    if (!response.ok) {
-      console.log("Error!");
-    }
-
-    const text = await response.text();
-    const jsonData = JSON.parse(text);
-
-    const expenseArray = formatData(jsonData);
-
-    const saveButton = document.getElementById("saveExpense");
-    saveButton.style.display = "inline";
-
-    const savingButton = document.getElementById("expenseSaving");
-    savingButton.style.display = "none";
-
-    setExpenseData(expenseArray);
-
-    if (month !== null && year !== undefined) {
-      setMonth(new Date(Date.parse(month + 1,)).getMonth());
-      setYear(year);
-    }
-
   } catch (error) {
     console.error(error.message);
   }

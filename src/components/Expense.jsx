@@ -1,6 +1,6 @@
 export default function Expense({ expenseSaved }) {
 
-    async function Submit(e) {
+    function Submit(e) {
         const form = document.querySelector("form");
         e.preventDefault();
 
@@ -12,22 +12,21 @@ export default function Expense({ expenseSaved }) {
 
         const formData = new FormData(form);
 
-        let response = "";
-        response = await fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec", {
-            method: "POST",
-            body: formData,
-            mode: "no-cors"
-        });
-
-        if (!response.ok) {
-            console.log("Error Saving Expense!");
+        try {
+            fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec", {
+                method: "POST",
+                body: formData,
+                mode: "no-cors"
+            }).then(() => {
+                let expenseDate = new Date(formData.get("Date") + "GMT-0700");
+                const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
+                const newYear = expenseDate.getFullYear().toString();
+                expenseSaved(newMonth, newYear);
+                form.reset();
+            });
+        } catch (error) {
+            console.error(error.message);
         }
-
-        let expenseDate = new Date(formData.get("Date") + "GMT-0700");
-        const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
-        const newYear = expenseDate.getFullYear().toString();
-        form.reset();
-        expenseSaved(newMonth, newYear);
     }
 
     return (

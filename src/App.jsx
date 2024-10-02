@@ -17,7 +17,8 @@ function App() {
   const [year, setYear] = useState(d.getFullYear());
 
   useEffect(() => {
-    getTableData(setExpenseData, null)
+    let monthName = d.toLocaleString('default', { month: 'long' });
+    getTableData(setExpenseData, monthName, d.getFullYear());
   }, []);
 
   function HandleExpenseUpdate(newMonth, newYear) {
