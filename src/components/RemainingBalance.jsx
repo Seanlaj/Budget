@@ -92,7 +92,7 @@ export default function RemainingBalance({expenseData}) {
                     </tr>
                     <tr>
                         <td><b>Total</b></td>
-                        <td>${total.toFixed(2)}</td>
+                        <td className={total < 0 ? 'negative' : undefined}>${total.toFixed(2)}</td>
                     </tr>
                 </tbody>
             </table>
