@@ -21,6 +21,7 @@ export default function Expense({ expenseSaved }) {
                 let expenseDate = new Date(formData.get("Date") + "GMT-0700");
                 const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
                 const newYear = expenseDate.getFullYear().toString();
+                
                 expenseSaved(newMonth, newYear);
                 form.reset();
             });
