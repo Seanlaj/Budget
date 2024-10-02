@@ -10,18 +10,16 @@ export function getTableData(setExpenseData, month, year, setMonth, setYear) {
       const savingButton = document.getElementById("expenseSaving");
       savingButton.style.display = "none";
 
-      dataCall.then(res => res.json()).then(res => {
-
-        const expenseArray = formatData(res);
-
-        setExpenseData(expenseArray);
-
-        let newMonth = new Date(Date.parse(month + 1,)).getMonth();
+      let newMonth = new Date(Date.parse(month + 1,)).getMonth();
 
         if (month !== null && year !== undefined) {
           setMonth(newMonth);
           setYear(year);
         }
+
+      dataCall.then(res => res.json()).then(res => {
+        const expenseArray = formatData(res);
+        setExpenseData(expenseArray);
       });
     } else {
       let dataCall = fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec");
