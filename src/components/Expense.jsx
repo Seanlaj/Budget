@@ -1,9 +1,9 @@
 export default function Expense({ expenseSaved }) {
 
-    function Submit(e) {
+    async function Submit(e) {
         const form = document.querySelector("form");
         e.preventDefault();
-        
+
         const saveButton = document.getElementById("saveExpense");
         saveButton.style.display = "none";
 
@@ -12,15 +12,22 @@ export default function Expense({ expenseSaved }) {
 
         const formData = new FormData(form);
 
-        fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec", {
+        let response = "";
+        response = await fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec", {
             method: "POST",
             body: formData,
             mode: "no-cors"
         });
 
+        if (!response.ok) {
+            console.log("Error Saving Expense!");
+        }
+
         let expenseDate = new Date(formData.get("Date") + "GMT-0700");
+        const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
+        const newYear = expenseDate.getFullYear().toString();
         form.reset();
-        expenseSaved(expenseDate.toLocaleString('default', { month: 'long' }), expenseDate.getFullYear().toString());
+        expenseSaved(newMonth, newYear);
     }
 
     return (
@@ -64,7 +71,7 @@ export default function Expense({ expenseSaved }) {
                 <button id="saveExpense" type="submit" className="btn mt-5">
                     Save
                 </button>
-                <button id="expenseSaving" className="btn mt-5" type="submit" disabled style={{display: 'none'}}>
+                <button id="expenseSaving" className="btn mt-5" type="submit" disabled style={{ display: 'none' }}>
                     <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     Saving...
                 </button>

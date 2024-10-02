@@ -7,7 +7,7 @@ export async function getTableData(setExpenseData, month, year, setMonth, setYea
     } else {
       response = await fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec");
     }
-    
+
     if (!response.ok) {
       console.log("Error!");
     }
@@ -22,10 +22,13 @@ export async function getTableData(setExpenseData, month, year, setMonth, setYea
 
     const savingButton = document.getElementById("expenseSaving");
     savingButton.style.display = "none";
-    
+
     setExpenseData(expenseArray);
-    setMonth(new Date(Date.parse(month + 1,)).getMonth());
-    setYear(year);
+
+    if (month !== null && year !== undefined) {
+      setMonth(new Date(Date.parse(month + 1,)).getMonth());
+      setYear(year);
+    }
 
   } catch (error) {
     console.error(error.message);
@@ -42,55 +45,4 @@ function formatData(data) {
       "Category": exp[4],
     })
   });
-}
-
-function pasrseTextToArray(text) {
-  let commaSplit = text.split(',');
-  let recordArray = [];
-  let counter = 1;
-  const row = {
-    "Date": null,
-    "Amount": null,
-    "Store": null,
-    "Items": null,
-    "Category": null,
-  };
-
-  for (let index = 5; index < commaSplit.length; index++) {
-
-    switch (counter) {
-      case 1:
-        row.Date = new Date(commaSplit[index]).toLocaleDateString("en-US");
-        break;
-      case 2:
-        row.Amount = commaSplit[index];
-        break;
-      case 3:
-        row.Store = commaSplit[index];
-        break;
-      case 4:
-        row.Items = commaSplit[index];
-        break;
-      case 5:
-        row.Category = commaSplit[index];
-        break;
-      default:
-        break;
-    }
-
-    if (counter % 5 === 0) {
-      let rowCopy = { ...row };
-      recordArray.push(rowCopy);
-      row.Date = null;
-      row.Amount = null;
-      row.Store = null;
-      row.Items = null;
-      row.Category = null;
-      counter = 0;
-    }
-
-    counter++;
-  }
-
-  return recordArray;
 }
