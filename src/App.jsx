@@ -18,15 +18,11 @@ function App() {
 
   useEffect(() => {
     let monthName = d.toLocaleString('default', { month: 'long' });
-    getTableData(setExpenseData, monthName, d.getFullYear());
+    getTableData(setExpenseData, monthName, d.getFullYear(), setMonth, setYear);
   }, []);
 
   function HandleExpenseUpdate(newMonth, newYear) {
-    if (newMonth !== undefined && newYear !== undefined) {
       getTableData(setExpenseData, newMonth, newYear, setMonth, setYear);
-    } else {
-      getTableData(setExpenseData, null, null);
-    }
   }
 
   return (

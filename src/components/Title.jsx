@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 export default function Title({ getExpenseData, month, year, setMonth, setYear }) {
 
     const monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

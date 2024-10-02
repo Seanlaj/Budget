@@ -16,8 +16,10 @@ export function getTableData(setExpenseData, month, year, setMonth, setYear) {
 
         setExpenseData(expenseArray);
 
+        let newMonth = new Date(Date.parse(month + 1,)).getMonth();
+
         if (month !== null && year !== undefined) {
-          setMonth(new Date(Date.parse(month + 1,)).getMonth());
+          setMonth(newMonth);
           setYear(year);
         }
       });
@@ -36,8 +38,10 @@ export function getTableData(setExpenseData, month, year, setMonth, setYear) {
 
         setExpenseData(expenseArray);
 
+        let newMonth = new Date(Date.parse(month + 1,)).getMonth();
+
         if (month !== null && year !== undefined) {
-          setMonth(new Date(Date.parse(month + 1,)).getMonth());
+          setMonth(newMonth);
           setYear(year);
         }
       });
