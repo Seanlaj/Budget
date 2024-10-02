@@ -18,10 +18,10 @@ export function getTableData(setExpenseData, month, year, setMonth, setYear) {
 
         let newMonth = new Date(Date.parse(month + 1,)).getMonth();
 
-        if (month !== null && year !== undefined) {
-          setMonth(newMonth);
-          setYear(year);
-        }
+        // if (month !== null && year !== undefined) {
+        //   setMonth(newMonth);
+        //   setYear(year);
+        // }
       });
     } else {
       let dataCall = fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec");
