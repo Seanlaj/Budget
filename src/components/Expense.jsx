@@ -25,7 +25,14 @@ export default function Expense({ expenseSaved }) {
                 expenseSaved(newMonth, newYear);
                 form.reset();
             })
-            .then(() => console.log("this is in the second then"))
+            .then(() => {
+                let expenseDate = new Date(formData.get("Date") + "GMT-0700");
+                const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
+                const newYear = expenseDate.getFullYear().toString();
+
+                expenseSaved(newMonth, newYear);
+                form.reset();
+            })
             .catch(() => console.log("this is in the fetch catch"));
         } catch (error) {
             console.error("This is in the catch: " + error.message);
