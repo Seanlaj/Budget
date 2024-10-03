@@ -100,3 +100,7 @@ button {
   background-color: transparent!important;
   border: none;
 }
+
+.table-data th {
+  text-wrap: nowrap;
+}
