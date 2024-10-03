@@ -18,7 +18,7 @@ export default function Expense({ expenseSaved }) {
                 body: formData,
                 mode: "no-cors"
             }).then(() => {
-                let expenseDate = new Date(formData.get("Date") + "GMT-0700");
+                let expenseDate = new Date(formData.get("Date") + " 00:00:00");
                 const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
                 const newYear = expenseDate.getFullYear().toString();
 
@@ -26,7 +26,7 @@ export default function Expense({ expenseSaved }) {
                 form.reset();
             })
             .then(() => {
-                let expenseDate = new Date(formData.get("Date") + "GMT-0700");
+                let expenseDate = new Date(formData.get("Date") + " 00:00:00");
                 const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
                 const newYear = expenseDate.getFullYear().toString();
 
