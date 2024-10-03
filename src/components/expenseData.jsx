@@ -2,13 +2,13 @@ export function getTableData(setExpenseData, month, year, setMonth, setYear) {
   try {
 
     if (month !== null && year !== null) {
-      let dataCall = fetch(`https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec?month=${month}&year=${year}`);
+      let dataCall = fetch(`https://script.google.com/macros/s/AKfycbwPGRfROc9SCuYQKAHvgvXUz24r_PT5UdDrVWhWfg0x-axLv8unQgj6YA29sjawOZbX/exec?month=${month}&year=${year}`);
 
       dataCall.then(res => res.json()).then(res => {
         UpdateUI(res, setExpenseData, month, year, setMonth, setYear);
       });
     } else {
-      let dataCall = fetch("https://script.google.com/macros/s/AKfycbxkfSy9HtJyZSMTp9lyz-nlNaGzjTHuNkooM-UShLLIoVw9AZgrZO2wEgEXVv-F0tG7/exec");
+      let dataCall = fetch("https://script.google.com/macros/s/AKfycbwPGRfROc9SCuYQKAHvgvXUz24r_PT5UdDrVWhWfg0x-axLv8unQgj6YA29sjawOZbX/exec");
       dataCall.then(res => res.json()).then(res => {
         UpdateUI(res, setExpenseData, month, year, setMonth, setYear);
       });

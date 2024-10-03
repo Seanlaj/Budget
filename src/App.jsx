@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css";
-// import "bootstrap/dist/js/bootstrap.bundle.min";
 import './App.css'
 import './index.css'
 import Expense from './components/Expense'
@@ -36,7 +35,7 @@ function App() {
         </div>
       </div>
       <div className='row' id="renderedData">
-        <Table tableData={expenseData} />
+        <Table tableData={expenseData} month={month} year={year} updateExpenses={HandleExpenseUpdate} />
       </div>
     </>
   )

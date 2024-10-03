@@ -95,3 +95,8 @@ button {
     width: 900px;
   }
 }
+
+.delete-button {
+  background-color: transparent!important;
+  border: none;
+}
