@@ -30,9 +30,6 @@ export default function Expense({ expenseSaved }) {
                 const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
                 const newYear = expenseDate.getFullYear().toString();
 
-                console.log("form date: " + formData.get("Date"));
-                console.log("calculated form date: " + new Date(formData.get("Date") + "GMT-0700"));
-                console.log(`New Month: ${newMonth} New Year: ${newYear}`);
                 expenseSaved(newMonth, newYear);
                 form.reset();
             })
