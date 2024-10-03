@@ -24,9 +24,11 @@ export default function Expense({ expenseSaved }) {
 
                 expenseSaved(newMonth, newYear);
                 form.reset();
-            });
+            })
+            .then(() => console.log("this is in the second then"))
+            .catch(() => console.log("this is in the fetch catch"));
         } catch (error) {
-            console.error(error.message);
+            console.error("This is in the catch: " + error.message);
         }
     }
 
