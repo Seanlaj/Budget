@@ -13,18 +13,28 @@ export default function Expense({ expenseSaved }) {
         const formData = new FormData(form);
 
         try {
-            fetch("https://script.google.com/macros/s/AKfycbwPGRfROc9SCuYQKAHvgvXUz24r_PT5UdDrVWhWfg0x-axLv8unQgj6YA29sjawOZbX/exec", {
-                method: "POST",
-                body: formData,
-                mode: "no-cors"
-            }).then(() => {
-                let expenseDate = new Date(formData.get("Date") + " 00:00:00");
-                const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
-                const newYear = expenseDate.getFullYear().toString();
+            fetch("https://ipv4.seeip.org/jsonip").then(res => res.json(), {method: 'GET'})
+                .then((res) => {
+                    console.log(res.ip);
+                })
+        } catch (error) {
+            console.error("This is in the catch: " + error.message);
+        }
+    
 
-                expenseSaved(newMonth, newYear);
-                form.reset();
-            })
+    try {
+        fetch("https://script.google.com/macros/s/AKfycbwPGRfROc9SCuYQKAHvgvXUz24r_PT5UdDrVWhWfg0x-axLv8unQgj6YA29sjawOZbX/exec", {
+            method: "POST",
+            body: formData,
+            mode: "no-cors"
+        }).then(() => {
+            let expenseDate = new Date(formData.get("Date") + " 00:00:00");
+            const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
+            const newYear = expenseDate.getFullYear().toString();
+
+            expenseSaved(newMonth, newYear);
+            form.reset();
+        })
             .then(() => {
                 let expenseDate = new Date(formData.get("Date") + " 00:00:00");
                 const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
@@ -34,57 +44,57 @@ export default function Expense({ expenseSaved }) {
                 form.reset();
             })
             .catch(() => console.log("this is in the fetch catch"));
-        } catch (error) {
-            console.error("This is in the catch: " + error.message);
-        }
+    } catch (error) {
+        console.error("This is in the catch: " + error.message);
     }
+}
 
-    return (
-        <div id="newExpense">
-            <h3>Add a new Expense</h3>
-            <form onSubmit={(e) => Submit(e)}>
-                <div className="form-group mt-4">
-                    <label htmlFor="date">Date</label>
-                    <input type="date" className="form-control" name="Date" id="date" required />
-                </div>
-                <div className="form-group mt-2">
-                    <label htmlFor="amount">Amount</label>
-                    <input type="number" className="form-control" name="Amount" id="amount" min="0" step=".01" inputMode="decimal" required />
-                </div>
-                <div className="form-group mt-2">
-                    <label htmlFor="store">Store</label>
-                    <input type="text" className="form-control" name="Store" id="store" required />
-                </div>
-                <div className="form-group mt-2">
-                    <label htmlFor="items">Item(s)</label>
-                    <input type="text" className="form-control" name="Items" id="items" required />
-                </div>
-                <div className="form-group mt-2">
-                    <label htmlFor="category">Category</label>
-                    <select defaultValue={""} className="form-control" id="category" name="Category" required>
-                        <option value="" disabled>Select...</option>
-                        <option value="Car Maintenance">Car Maintenance</option>
-                        <option value="Clothes">Clothes</option>
-                        <option value="Costco">Costco</option>
-                        <option value="Eating Out">Eating Out</option>
-                        <option value="Entertainment">Entertainment</option>
-                        <option value="Gas">Gas</option>
-                        <option value="Gifts">Gifts</option>
-                        <option value="Giving">Giving</option>
-                        <option value="Groceries">Groceries</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Miscellaneous Needs">Miscellaneous Needs</option>
-                        <option value="Non-Essentials (Wants)">Non-Essentials (Wants)</option>
-                    </select>
-                </div>
-                <button id="saveExpense" type="submit" className="btn mt-5">
-                    Save
-                </button>
-                <button id="expenseSaving" className="btn mt-5" type="submit" disabled style={{ display: 'none' }}>
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    Saving...
-                </button>
-            </form>
-        </div>
-    )
+return (
+    <div id="newExpense">
+        <h3>Add a new Expense</h3>
+        <form onSubmit={(e) => Submit(e)}>
+            <div className="form-group mt-4">
+                <label htmlFor="date">Date</label>
+                <input type="date" className="form-control" name="Date" id="date" required />
+            </div>
+            <div className="form-group mt-2">
+                <label htmlFor="amount">Amount</label>
+                <input type="number" className="form-control" name="Amount" id="amount" min="0" step=".01" inputMode="decimal" required />
+            </div>
+            <div className="form-group mt-2">
+                <label htmlFor="store">Store</label>
+                <input type="text" className="form-control" name="Store" id="store" required />
+            </div>
+            <div className="form-group mt-2">
+                <label htmlFor="items">Item(s)</label>
+                <input type="text" className="form-control" name="Items" id="items" required />
+            </div>
+            <div className="form-group mt-2">
+                <label htmlFor="category">Category</label>
+                <select defaultValue={""} className="form-control" id="category" name="Category" required>
+                    <option value="" disabled>Select...</option>
+                    <option value="Car Maintenance">Car Maintenance</option>
+                    <option value="Clothes">Clothes</option>
+                    <option value="Costco">Costco</option>
+                    <option value="Eating Out">Eating Out</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Gas">Gas</option>
+                    <option value="Gifts">Gifts</option>
+                    <option value="Giving">Giving</option>
+                    <option value="Groceries">Groceries</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Miscellaneous Needs">Miscellaneous Needs</option>
+                    <option value="Non-Essentials (Wants)">Non-Essentials (Wants)</option>
+                </select>
+            </div>
+            <button id="saveExpense" type="submit" className="btn mt-5">
+                Save
+            </button>
+            <button id="expenseSaving" className="btn mt-5" type="submit" disabled style={{ display: 'none' }}>
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Saving...
+            </button>
+        </form>
+    </div>
+)
 }

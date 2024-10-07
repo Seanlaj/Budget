@@ -20,7 +20,7 @@ function App() {
   }, []);
 
   function HandleExpenseUpdate(newMonth, newYear) {
-      getTableData(setExpenseData, newMonth, newYear, setMonth, setYear);
+    getTableData(setExpenseData, newMonth, newYear, setMonth, setYear);
   }
 
   return (
