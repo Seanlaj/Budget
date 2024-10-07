@@ -31,7 +31,7 @@ export default function Title({ getExpenseData, month, year, setMonth, setYear }
             setYear(newYear);
         }
 
-        getExpenseData(monthArray[newMonth], newYear);
+        getExpenseData(newMonth, newYear);
     }
 
     return (

@@ -2,13 +2,16 @@ export function getTableData(setExpenseData, month, year, setMonth, setYear) {
   try {
 
     if (month !== null && year !== null) {
-      let dataCall = fetch(`https://script.google.com/macros/s/AKfycbwPGRfROc9SCuYQKAHvgvXUz24r_PT5UdDrVWhWfg0x-axLv8unQgj6YA29sjawOZbX/exec?month=${month}&year=${year}`);
+      let dataCall = fetch(`https://d1-budget.slajeun217.workers.dev/api/expensebydate?month=${month}&year=${year}`);
 
       dataCall.then(res => res.json()).then(res => {
         UpdateUI(res, setExpenseData, month, year, setMonth, setYear);
       });
     } else {
-      let dataCall = fetch("https://script.google.com/macros/s/AKfycbwPGRfROc9SCuYQKAHvgvXUz24r_PT5UdDrVWhWfg0x-axLv8unQgj6YA29sjawOZbX/exec");
+      let d = new Date();
+      const defaultMonth = d.getMonth();
+      const defaultYear = d.getFullYear();
+      let dataCall = fetch(`https://d1-budget.slajeun217.workers.dev/api/expensebydate?month=${defaultMonth}&year=${defaultYear}`);
       dataCall.then(res => res.json()).then(res => {
         UpdateUI(res, setExpenseData, month, year, setMonth, setYear);
       });
@@ -26,21 +29,8 @@ function UpdateUI(res, setExpenseData, month, year, setMonth, setYear) {
     setYear(year);
   }
 
-  const expenseArray = formatData(res);
-  setExpenseData(expenseArray);
+  setExpenseData(res);
 
   document.getElementById("saveExpense").style.display = "inline";
   document.getElementById("expenseSaving").style.display = "none";
-}
-
-function formatData(data) {
-  return data.filter((exp) => exp[1] !== "Invalid Date").map((exp) => {
-    return ({
-      "Date": new Date(exp[0]).toLocaleDateString("en-US"),
-      "Amount": exp[1],
-      "Store": exp[2],
-      "Items": exp[3],
-      "Category": exp[4],
-    })
-  });
 }

@@ -10,26 +10,15 @@ export default function Expense({ expenseSaved }) {
         const savingButton = document.getElementById("expenseSaving");
         savingButton.style.display = "inline";
 
-        const formData = new FormData(form);
-
-        try {
-            fetch("https://ipv4.seeip.org/jsonip").then(res => res.json(), {method: 'GET'})
-                .then((res) => {
-                    console.log(res.ip);
-                })
-        } catch (error) {
-            console.error("This is in the catch: " + error.message);
-        }
-    
+        const formData = new FormData(form);            
 
     try {
-        fetch("https://script.google.com/macros/s/AKfycbwPGRfROc9SCuYQKAHvgvXUz24r_PT5UdDrVWhWfg0x-axLv8unQgj6YA29sjawOZbX/exec", {
+        fetch("https://d1-budget.slajeun217.workers.dev/api/create", {
             method: "POST",
-            body: formData,
-            mode: "no-cors"
+            body: formData
         }).then(() => {
             let expenseDate = new Date(formData.get("Date") + " 00:00:00");
-            const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
+            const newMonth = expenseDate.getMonth();
             const newYear = expenseDate.getFullYear().toString();
 
             expenseSaved(newMonth, newYear);
@@ -37,7 +26,7 @@ export default function Expense({ expenseSaved }) {
         })
             .then(() => {
                 let expenseDate = new Date(formData.get("Date") + " 00:00:00");
-                const newMonth = expenseDate.toLocaleString('default', { month: 'long' });
+                const newMonth = expenseDate.getMonth();
                 const newYear = expenseDate.getFullYear().toString();
 
                 expenseSaved(newMonth, newYear);
