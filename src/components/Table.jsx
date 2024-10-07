@@ -6,24 +6,12 @@ export default function Table({ tableData, month, year, updateExpenses }) {
         document.getElementById(`deleteIcon${rowNum}`).style.display = "none";
         document.getElementById(`deleteLoading${rowNum}`).style.display = "flex";
 
-        let ip = ""
-        try {
-            fetch("https://ipv4.seeip.org/jsonip").then(res => res.json(), { method: 'GET' })
-              .then((res) => {
-                ip = res.ip;
-                alert(res.ip);
-              })
-          } catch (error) {
-            console.error("Unable to fetch IP: " + error.message);
-          }
-
         const formData = new FormData();
 
         let data = {
             row: rowNum + 1,
             month: month,
-            year: year,
-            ip: ip
+            year: year
         };
 
         for (const key in data) {
