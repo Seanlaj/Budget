@@ -22,7 +22,7 @@ export function getTableData(setExpenseData, month, year, setMonth, setYear) {
 }
 
 function UpdateUI(res, setExpenseData, month, year, setMonth, setYear) {
-  let newMonth = new Date(Date.parse(month + 1,)).getMonth();
+  let newMonth = new Date(year, month).getMonth();
 
   if (month !== null && year !== undefined) {
     setMonth(newMonth);
