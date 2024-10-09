@@ -1,4 +1,4 @@
-export default function Expense({ expenseSaved }) {
+export default function Expense({ expenseData, setExpenseData }) {
 
     function Submit(e) {
         const form = document.querySelector("form");
@@ -21,7 +21,11 @@ export default function Expense({ expenseSaved }) {
             const newMonth = expenseDate.getMonth();
             const newYear = expenseDate.getFullYear().toString();
 
-            expenseSaved(newMonth, newYear);
+            setExpenseData({
+                ...expenseData,
+                "Month": newMonth,
+                "Year": newYear
+            });
             form.reset();
         })
             .then(() => {
@@ -29,7 +33,11 @@ export default function Expense({ expenseSaved }) {
                 const newMonth = expenseDate.getMonth();
                 const newYear = expenseDate.getFullYear().toString();
 
-                expenseSaved(newMonth, newYear);
+                setExpenseData({
+                    ...expenseData,
+                    "Month": newMonth,
+                    "Year": newYear
+                });
                 form.reset();
             })
             .catch(() => console.log("this is in the fetch catch"));

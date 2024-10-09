@@ -1,4 +1,4 @@
-export default function Table({ tableData, month, year, updateExpenses }) {
+export default function Table({ expenseData, setExpenseData }) {
     const monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     function HandleDelete(id) {
@@ -6,25 +6,12 @@ export default function Table({ tableData, month, year, updateExpenses }) {
         document.getElementById(`deleteIcon${id}`).style.display = "none";
         document.getElementById(`deleteLoading${id}`).style.display = "flex";
 
-        // const formData = new FormData();
-
-        // let data = {
-        //     row: id + 1,
-        //     month: month,
-        //     year: year
-        // };
-
-        // for (const key in data) {
-        //     formData.append(key, data[key]);
-        // }
-
         try {
             fetch(`https://d1-budget.slajeun217.workers.dev/api/delete?id=${id}`, {
                 method: "POST",
-                // body: formData,
                 mode: "no-cors"
             }).then(() => {
-                updateExpenses(month, year);
+                setExpenseData(expenseData);
                 document.getElementById(`deleteIcon${id}`).style.display = "flex";
                 document.getElementById(`deleteLoading${id}`).style.display = "none";
             })
@@ -47,7 +34,7 @@ export default function Table({ tableData, month, year, updateExpenses }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {tableData.length > 0 ? (tableData.map((row, i) => {
+                    {expenseData.Expenses.length > 0 ? (expenseData.Expenses.map((row, i) => {
                         if (row.Date !== 'Invalid Date') {
                             return (
                                 <tr key={row.Id}>

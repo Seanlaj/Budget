@@ -16,21 +16,21 @@ export default function RemainingBalance({expenseData}) {
     };
 
     const remaining = {
-        CarMaintenance: balances.CarMaintenance - expenseData.filter(exp => exp.Category == "Car Maintenance").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Clothes: balances.Clothes - expenseData.filter(exp => exp.Category == "Clothes").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Costco: balances.Costco - expenseData.filter(exp => exp.Category == "Costco").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        EatingOut: balances.EatingOut - expenseData.filter(exp => exp.Category == "Eating Out").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Entertainment: balances.Entertainment - expenseData.filter(exp => exp.Category == "Entertainment").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),        
-        Gas: balances.Gas - expenseData.filter(exp => exp.Category == "Gas").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),        
-        Gifts: balances.Gifts - expenseData.filter(exp => exp.Category == "Gifts").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Giving: balances.Giving - expenseData.filter(exp => exp.Category == "Giving").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Groceries: balances.Groceries - expenseData.filter(exp => exp.Category == "Groceries").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Healthcare: balances.Healthcare - expenseData.filter(exp => exp.Category == "Healthcare").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        MiscellaneousNeeds: balances.MiscellaneousNeeds - expenseData.filter(exp => exp.Category == "Miscellaneous Needs").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        NonEssentialsWants: balances.NonEssentialsWants - expenseData.filter(exp => exp.Category == "Non-Essentials (Wants)").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        CarMaintenance: balances.CarMaintenance - expenseData.Expenses.filter(exp => exp.Category == "Car Maintenance").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        Clothes: balances.Clothes - expenseData.Expenses.filter(exp => exp.Category == "Clothes").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        Costco: balances.Costco - expenseData.Expenses.filter(exp => exp.Category == "Costco").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        EatingOut: balances.EatingOut - expenseData.Expenses.filter(exp => exp.Category == "Eating Out").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        Entertainment: balances.Entertainment - expenseData.Expenses.filter(exp => exp.Category == "Entertainment").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),        
+        Gas: balances.Gas - expenseData.Expenses.filter(exp => exp.Category == "Gas").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),        
+        Gifts: balances.Gifts - expenseData.Expenses.filter(exp => exp.Category == "Gifts").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        Giving: balances.Giving - expenseData.Expenses.filter(exp => exp.Category == "Giving").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        Groceries: balances.Groceries - expenseData.Expenses.filter(exp => exp.Category == "Groceries").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        Healthcare: balances.Healthcare - expenseData.Expenses.filter(exp => exp.Category == "Healthcare").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        MiscellaneousNeeds: balances.MiscellaneousNeeds - expenseData.Expenses.filter(exp => exp.Category == "Miscellaneous Needs").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
+        NonEssentialsWants: balances.NonEssentialsWants - expenseData.Expenses.filter(exp => exp.Category == "Non-Essentials (Wants)").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
     }
 
-    const total = Object.values(balances).reduce((partialSum, a) => partialSum + a, 0) - expenseData.filter(exp => exp.Date !== "Invalid Date").map((exp) => {return exp.Amount}).reduce((partialSum, a) => partialSum + a, 0);
+    const total = Object.values(balances).reduce((partialSum, a) => partialSum + a, 0) - expenseData.Expenses.filter(exp => exp.Date !== "Invalid Date").map((exp) => {return exp.Amount}).reduce((partialSum, a) => partialSum + a, 0);
     
     return (
         <>

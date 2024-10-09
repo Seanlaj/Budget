@@ -1,35 +1,26 @@
-export function getTableData(setExpenseData, month, year, setMonth, setYear) {
+export function getTableData(setExpenseData, expenseData) {
   try {
 
-    if (month !== null && year !== null) {
-      let dataCall = fetch(`https://d1-budget.slajeun217.workers.dev/api/expensebydate?month=${month}&year=${year}`);
+    if (expenseData.Month !== null && expenseData.Year !== null) {
+      let dataCall = fetch(`https://d1-budget.slajeun217.workers.dev/api/expensebydate?month=${expenseData.Month}&year=${expenseData.Year}`);
 
       dataCall.then(res => res.json()).then(res => {
-        UpdateUI(res, setExpenseData, month, year, setMonth, setYear);
+        UpdateUI(res, setExpenseData, expenseData.Month, expenseData.Year);
       });
-    } else {
-      let d = new Date();
-      const defaultMonth = d.getMonth();
-      const defaultYear = d.getFullYear();
-      let dataCall = fetch(`https://d1-budget.slajeun217.workers.dev/api/expensebydate?month=${defaultMonth}&year=${defaultYear}`);
-      dataCall.then(res => res.json()).then(res => {
-        UpdateUI(res, setExpenseData, month, year, setMonth, setYear);
-      });
-    }
+    } 
   } catch (error) {
     console.error(error.message);
   }
 }
 
-function UpdateUI(res, setExpenseData, month, year, setMonth, setYear) {
+function UpdateUI(res, setExpenseData, month, year) {
   let newMonth = new Date(year, month).getMonth();
 
-  if (month !== null && year !== undefined) {
-    setMonth(newMonth);
-    setYear(year);
-  }
-
-  setExpenseData(res);
+    setExpenseData({
+      Expenses: res,
+      Month: newMonth,
+      Year: year
+    });
 
   document.getElementById("saveExpense").style.display = "inline";
   document.getElementById("expenseSaving").style.display = "none";

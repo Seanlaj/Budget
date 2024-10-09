@@ -10,32 +10,34 @@ import RemainingBalance from './components/RemainingBalance';
 import Title from './components/Title';
 
 function App() {
-  const [expenseData, setExpenseData] = useState([]);
   const d = new Date();
-  const [month, setMonth] = useState(d.getMonth());
-  const [year, setYear] = useState(d.getFullYear());
+  const [expenseData, setExpenseData] = useState({
+    Expenses: [],
+    Month: d.getMonth(),
+    Year: d.getFullYear()
+  });
 
   useEffect(() => {
-    getTableData(setExpenseData, null);
+    getTableData(setExpenseData, expenseData);
   }, []);
 
-  function HandleExpenseUpdate(newMonth, newYear) {
-    getTableData(setExpenseData, newMonth, newYear, setMonth, setYear);
+  function HandleExpenseDataUpdate(expenseData) {
+    getTableData(setExpenseData, expenseData);
   }
 
   return (
     <>
-      <Title getExpenseData={HandleExpenseUpdate} month={month} year={year} setMonth={setMonth} setYear={setYear} />
+      <Title getExpenseData={HandleExpenseDataUpdate} expenseData={expenseData}/>
       <div className='row'>
         <div className='col-md-6 expense-container'>
-          <Expense expenseSaved={HandleExpenseUpdate} />
+          <Expense expenseData={expenseData} setExpenseData={HandleExpenseDataUpdate} />
         </div>
         <div className='col-md-6'>
           <RemainingBalance expenseData={expenseData} />
         </div>
       </div>
       <div className='row' id="renderedData">
-        <Table tableData={expenseData} month={month} year={year} updateExpenses={HandleExpenseUpdate} />
+        <Table expenseData={expenseData} setExpenseData={HandleExpenseDataUpdate} />
       </div>
     </>
   )
