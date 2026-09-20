@@ -1,101 +1,38 @@
-export default function RemainingBalance({expenseData}) {
+import PropTypes from 'prop-types'
+import { BUDGETS } from './budgetConfig'
 
-    const balances = {
-        CarMaintenance: 50,
-        Clothes: 100,        
-        Costco: 220,
-        EatingOut: 120,
-        Entertainment: 100,        
-        Gas: 175,        
-        Gifts: 75,
-        Giving: 20,
-        Groceries: 1100,
-        Healthcare: 200,
-        MiscellaneousNeeds: 300,
-        NonEssentialsWants: 150
-    };
+const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
-    const remaining = {
-        CarMaintenance: balances.CarMaintenance - expenseData.Expenses.filter(exp => exp.Category == "Car Maintenance").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Clothes: balances.Clothes - expenseData.Expenses.filter(exp => exp.Category == "Clothes").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Costco: balances.Costco - expenseData.Expenses.filter(exp => exp.Category == "Costco").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        EatingOut: balances.EatingOut - expenseData.Expenses.filter(exp => exp.Category == "Eating Out").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Entertainment: balances.Entertainment - expenseData.Expenses.filter(exp => exp.Category == "Entertainment").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),        
-        Gas: balances.Gas - expenseData.Expenses.filter(exp => exp.Category == "Gas").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),        
-        Gifts: balances.Gifts - expenseData.Expenses.filter(exp => exp.Category == "Gifts").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Giving: balances.Giving - expenseData.Expenses.filter(exp => exp.Category == "Giving").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Groceries: balances.Groceries - expenseData.Expenses.filter(exp => exp.Category == "Groceries").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        Healthcare: balances.Healthcare - expenseData.Expenses.filter(exp => exp.Category == "Healthcare").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        MiscellaneousNeeds: balances.MiscellaneousNeeds - expenseData.Expenses.filter(exp => exp.Category == "Miscellaneous Needs").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-        NonEssentialsWants: balances.NonEssentialsWants - expenseData.Expenses.filter(exp => exp.Category == "Non-Essentials (Wants)").map((exp) => {return Number(exp.Amount)}).reduce((partialSum, a) => partialSum + a, 0),
-    }
+export default function RemainingBalance({ expenseData }) {
+  const spentByCategory = expenseData.Expenses.reduce((totals, expense) => {
+    totals[expense.Category] = (totals[expense.Category] || 0) + Number(expense.Amount || 0)
+    return totals
+  }, {})
 
-    const total = Object.values(balances).reduce((partialSum, a) => partialSum + a, 0) - expenseData.Expenses.filter(exp => exp.Date !== "Invalid Date").map((exp) => {return exp.Amount}).reduce((partialSum, a) => partialSum + a, 0);
-    
-    return (
-        <>
-            <table className="table table-striped table-bordered table-data table-responsive rounded">
-            <thead>
-                    <tr>
-                        <th>Category</th>
-                        <th>Remaining</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Car Maintenance</td>
-                        <td className={remaining.CarMaintenance < 0 ? 'negative' : undefined}>${remaining.CarMaintenance.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Clothes</td>
-                        <td className={remaining.Clothes < 0 ? 'negative' : undefined}>${remaining.Clothes.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Costco</td>
-                        <td className={remaining.Costco < 0 ? 'negative' : undefined}>${remaining.Costco.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Eating Out</td>
-                        <td className={remaining.EatingOut < 0 ? 'negative' : undefined}>${remaining.EatingOut.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Entertainment</td>
-                        <td className={remaining.Entertainment < 0 ? 'negative' : undefined}>${remaining.Entertainment.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Gas</td>
-                        <td className={remaining.Gas < 0 ? 'negative' : undefined}>${remaining.Gas.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Gifts</td>
-                        <td className={remaining.Gifts < 0 ? 'negative' : undefined}>${remaining.Gifts.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Giving</td>
-                        <td className={remaining.Giving < 0 ? 'negative' : undefined}>${remaining.Giving.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Groceries</td>
-                        <td className={remaining.Groceries < 0 ? 'negative' : undefined}>${remaining.Groceries.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Healthcare</td>
-                        <td className={remaining.Healthcare < 0 ? 'negative' : undefined}>${remaining.Healthcare.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Miscellaneous Needs</td>
-                        <td className={remaining.MiscellaneousNeeds < 0 ? 'negative' : undefined}>${remaining.MiscellaneousNeeds.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Non-Essentials (Wants)</td>
-                        <td className={remaining.NonEssentialsWants < 0 ? 'negative' : undefined}>${remaining.NonEssentialsWants.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Total</b></td>
-                        <td className={total < 0 ? 'negative' : undefined}>${total.toFixed(2)}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </>
-    )
+  return (
+    <section className="panel budget-panel">
+      <div className="panel-heading">
+        <div><p className="eyebrow">Plan overview</p><h2>Category balances</h2></div>
+        <span className="item-count">{Object.keys(BUDGETS).length} categories</span>
+      </div>
+      <div className="budget-list">
+        {Object.entries(BUDGETS).map(([category, budget]) => {
+          const remaining = budget - (spentByCategory[category] || 0)
+          const used = Math.min(100, Math.max(0, ((spentByCategory[category] || 0) / budget) * 100))
+          return (
+            <div className="budget-row" key={category}>
+              <div className="budget-copy"><span>{category}</span><strong className={remaining < 0 ? 'negative' : ''}>{currency.format(remaining)}</strong></div>
+              <div className="progress-track"><span className={remaining < 0 ? 'over' : ''} style={{ width: `${used}%` }} /></div>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+RemainingBalance.propTypes = {
+  expenseData: PropTypes.shape({
+    Expenses: PropTypes.arrayOf(PropTypes.object).isRequired,
+  }).isRequired,
 }

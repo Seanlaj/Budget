@@ -1,65 +1,69 @@
-export default function Table({ expenseData, setExpenseData }) {
-    const monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+import { deleteExpense } from './expenseData'
 
-    function HandleDelete(id) {
+const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
-        document.getElementById(`deleteIcon${id}`).style.display = "none";
-        document.getElementById(`deleteLoading${id}`).style.display = "flex";
+export default function Table({ expenseData, setExpenseData, loading }) {
+  const [deletingId, setDeletingId] = useState(null)
+  const [error, setError] = useState('')
 
-        try {
-            fetch(`https://d1-budget.slajeun217.workers.dev/api/delete?id=${id}`, {
-                method: "POST",
-                mode: "no-cors"
-            }).then(() => {
-                setExpenseData(expenseData);
-                document.getElementById(`deleteIcon${id}`).style.display = "flex";
-                document.getElementById(`deleteLoading${id}`).style.display = "none";
-            })
-        } catch (error) {
-            console.error(error.message);
-        }
+  async function handleDelete(id) {
+    if (!window.confirm('Delete this expense? This cannot be undone.')) return
+    setDeletingId(id)
+    setError('')
+    try {
+      await deleteExpense(id)
+      await setExpenseData(expenseData)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setDeletingId(null)
     }
+  }
 
-    return (
-        <>
-            <table className="table table-striped table-bordered table-responsive my-5 table-data">
-                <thead>
-                    <tr>
-                        <th className="align-middle">Date</th>
-                        <th className="align-middle">Amount</th>
-                        <th className="align-middle">Store</th>
-                        <th className="align-middle">Items</th>
-                        <th className="align-middle">Category</th>
-                        <th className="align-middle">Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {expenseData.Expenses.length > 0 ? (expenseData.Expenses.map((row, i) => {
-                        if (row.Date !== 'Invalid Date') {
-                            return (
-                                <tr key={row.Id}>
-                                    <td className="align-middle">{row.Date}</td>
-                                    <td className="align-middle">${row.Amount}</td>
-                                    <td className="align-middle">{row.Store}</td>
-                                    <td className="align-middle">{row.Items}</td>
-                                    <td className="align-middle">{row.Category}</td>
-                                    <td className="align-middle">
-                                        <div className="d-flex align-items-center flex-column">
-                                            <button onClick={() => { let result = confirm("Are you sure you want to delete this expense?"); if (result) { HandleDelete(row.Id); } }} className="delete-button">
-                                                <svg id={`deleteIcon${row.Id}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash text-danger" viewBox="0 0 16 16">
-                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
-                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
-                                                </svg>
-                                                <span id={`deleteLoading${row.Id}`} className="spinner-border spinner-border-sm text-danger" style={{display: 'none'}} role="status" aria-hidden="true"></span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )
-                        }
-                    })) : null}
-                </tbody>
-            </table>
-        </>
-    )
+  return (
+    <section className="panel transactions-panel">
+      <div className="panel-heading">
+        <div><p className="eyebrow">Activity</p><h2>Recent expenses</h2></div>
+        <span className="item-count">{expenseData.Expenses.length} transactions</span>
+      </div>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <div className="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Store</th><th>Items</th><th>Category</th><th className="amount-cell">Amount</th><th><span className="visually-hidden">Actions</span></th></tr></thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="6" className="empty-state"><span className="spinner-border spinner-border-sm" /> Loading expenses...</td></tr>
+            ) : expenseData.Expenses.length === 0 ? (
+              <tr><td colSpan="6" className="empty-state">No expenses recorded for this month.</td></tr>
+            ) : expenseData.Expenses.filter(row => row.Date !== 'Invalid Date').map(row => (
+              <tr key={row.Id}>
+                <td data-label="Date">{row.Date}</td>
+                <td data-label="Store" className="primary-cell">{row.Store}</td>
+                <td data-label="Items">{row.Items}</td>
+                <td data-label="Category"><span className="category-tag">{row.Category}</span></td>
+                <td data-label="Amount" className="amount-cell">{currency.format(Number(row.Amount || 0))}</td>
+                <td className="action-cell">
+                  <button type="button" className="delete-button" onClick={() => handleDelete(row.Id)} disabled={deletingId === row.Id} aria-label={`Delete expense from ${row.Store}`} title="Delete expense">
+                    {deletingId === row.Id ? <span className="spinner-border spinner-border-sm" /> : <span aria-hidden="true">&times;</span>}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
+
+Table.propTypes = {
+  expenseData: PropTypes.shape({
+    Expenses: PropTypes.arrayOf(PropTypes.object).isRequired,
+    Month: PropTypes.number.isRequired,
+    Year: PropTypes.number.isRequired,
+  }).isRequired,
+  setExpenseData: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
 }

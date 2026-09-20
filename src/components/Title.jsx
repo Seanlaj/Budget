@@ -1,65 +1,40 @@
+import PropTypes from 'prop-types'
+
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
 export default function Title({ getExpenseData, expenseData }) {
+  const now = new Date()
+  const isFirstMonth = expenseData.Month === 2 && Number(expenseData.Year) === 2024
+  const isCurrentMonth = expenseData.Month === now.getMonth() && Number(expenseData.Year) === now.getFullYear()
 
-    const monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  function changeMonth(direction) {
+    const date = new Date(Number(expenseData.Year), expenseData.Month + direction, 1)
+    getExpenseData({ ...expenseData, Month: date.getMonth(), Year: date.getFullYear() })
+  }
 
-    const d = new Date();
+  return (
+    <header className="app-header">
+      <div>
+        <p className="brand">Household budget</p>
+        <h1>{months[expenseData.Month]} {expenseData.Year}</h1>
+      </div>
+      <nav className="month-nav" aria-label="Change month">
+        <button type="button" onClick={() => changeMonth(-1)} disabled={isFirstMonth} aria-label="Previous month" title="Previous month">
+          <span aria-hidden="true">&lsaquo;</span>
+        </button>
+        <button type="button" onClick={() => changeMonth(1)} disabled={isCurrentMonth} aria-label="Next month" title="Next month">
+          <span aria-hidden="true">&rsaquo;</span>
+        </button>
+      </nav>
+    </header>
+  )
+}
 
-    const prevButton = document.getElementById("prevMonth");
-    const nextButton = document.getElementById("nextMonth");
-
-    //Disable the previous month button if you're at the first month of data
-    if (prevButton !== null && expenseData.Month === 2 && expenseData.Year === 2024) {
-        prevButton.style.display = 'none';
-    } else if (prevButton !== null) {
-        prevButton.style.display = 'flex';
-    }
-
-    //Disable the next month button if you're at the last month of data
-    if (nextButton !== null && expenseData.Month === (d.getMonth()) && expenseData.Year === d.getFullYear()) {
-        nextButton.style.display = 'none';
-    } else if (nextButton !== null) {
-        nextButton.style.display = 'flex';
-    }
-
-    function HandleMonthChange(newMonth, newYear, action) {
-        if (newMonth === 12 && action ==="next") {
-            getExpenseData({
-                ...expenseData,
-                Month: 0,
-                Year: expenseData.Year + 1
-            });
-        } else if (newMonth === -1 && action === "prev") {
-            getExpenseData({
-                ...expenseData,
-                Month: 11,
-                Year: expenseData.Year - 1
-            });
-        } else {
-            getExpenseData({
-                ...expenseData,
-                Month: newMonth,
-                Year: newYear
-            });
-        }
-    }
-
-    return (
-        <>
-            <div className="mb-5 row justify-content-center align-items-center">
-                <button id="prevMonth" onClick={() => HandleMonthChange(expenseData.Month-1, expenseData.Year, "prev")} className="col-md-1 month-change" style={{width: '10%', padding: '15px'}}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-left m-auto" viewBox="0 0 16 16">
-                        <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0" />
-                    </svg>
-                </button>
-
-                <h1 className="d-inline col-md-10 d-inline" style={{width: '80%'}}>{monthArray[expenseData.Month]} {expenseData.Year} Budget</h1>
-
-                <button id="nextMonth" onClick={() => HandleMonthChange(expenseData.Month+1, expenseData.Year, "next")} className="col-md-1 month-change" style={{width: '10%', display: 'none', padding: '15px'}}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-right m-auto" viewBox="0 0 16 16">
-                        <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
-                    </svg>
-                </button>
-            </div>
-        </>
-    )
+Title.propTypes = {
+  getExpenseData: PropTypes.func.isRequired,
+  expenseData: PropTypes.shape({
+    Expenses: PropTypes.arrayOf(PropTypes.object).isRequired,
+    Month: PropTypes.number.isRequired,
+    Year: PropTypes.number.isRequired,
+  }).isRequired,
 }

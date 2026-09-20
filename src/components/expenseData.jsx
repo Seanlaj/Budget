@@ -1,27 +1,19 @@
-export function getTableData(setExpenseData, expenseData) {
-  try {
+const API_URL = 'https://d1-budget.slajeun217.workers.dev'
 
-    if (expenseData.Month !== null && expenseData.Year !== null) {
-      let dataCall = fetch(`https://d1-budget.slajeun217.workers.dev/api/expensebydate?month=${expenseData.Month}&year=${expenseData.Year}`);
-
-      dataCall.then(res => res.json()).then(res => {
-        UpdateUI(res, setExpenseData, expenseData.Month, expenseData.Year);
-      });
-    } 
-  } catch (error) {
-    console.error(error.message);
-  }
+export async function getTableData(month, year) {
+  if (!Number.isInteger(Number(month)) || !Number.isInteger(Number(year))) throw new Error('Unable to load expenses for an invalid date.')
+  const response = await fetch(`${API_URL}/api/expensebydate?month=${month}&year=${year}`)
+  if (!response.ok) throw new Error('Expenses could not be loaded. Please try again.')
+  const expenses = await response.json()
+  return Array.isArray(expenses) ? expenses : []
 }
 
-function UpdateUI(res, setExpenseData, month, year) {
-  let newMonth = new Date(year, month).getMonth();
+export async function createExpense(formData) {
+  const response = await fetch(`${API_URL}/api/create`, { method: 'POST', body: formData })
+  if (!response.ok) throw new Error('The expense could not be saved.')
+}
 
-    setExpenseData({
-      Expenses: res,
-      Month: newMonth,
-      Year: year
-    });
-
-  document.getElementById("saveExpense").style.display = "inline";
-  document.getElementById("expenseSaving").style.display = "none";
+export async function deleteExpense(id) {
+  const response = await fetch(`${API_URL}/api/delete?id=${encodeURIComponent(id)}`, { method: 'POST' })
+  if (!response.ok) throw new Error('The expense could not be deleted.')
 }

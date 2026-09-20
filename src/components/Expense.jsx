@@ -1,97 +1,54 @@
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+import { createExpense } from './expenseData'
+
+const categories = ['Car Maintenance', 'Clothes', 'Costco', 'Eating Out', 'Entertainment', 'Gas', 'Gifts', 'Giving', 'Groceries', 'Healthcare', 'Miscellaneous Needs', 'Non-Essentials (Wants)']
+
 export default function Expense({ expenseData, setExpenseData }) {
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
-    function Submit(e) {
-        const form = document.querySelector("form");
-        e.preventDefault();
-
-        const saveButton = document.getElementById("saveExpense");
-        saveButton.style.display = "none";
-
-        const savingButton = document.getElementById("expenseSaving");
-        savingButton.style.display = "inline";
-
-        const formData = new FormData(form);            
-
+  async function submit(event) {
+    event.preventDefault()
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    const [year, month] = String(formData.get('Date')).split('-').map(Number)
+    setSaving(true)
+    setError('')
     try {
-        fetch("https://d1-budget.slajeun217.workers.dev/api/create", {
-            method: "POST",
-            body: formData
-        }).then(() => {
-            let expenseDate = new Date(formData.get("Date") + " 00:00:00");
-            const newMonth = expenseDate.getMonth();
-            const newYear = expenseDate.getFullYear().toString();
-
-            setExpenseData({
-                ...expenseData,
-                "Month": newMonth,
-                "Year": newYear
-            });
-            form.reset();
-        })
-            .then(() => {
-                let expenseDate = new Date(formData.get("Date") + " 00:00:00");
-                const newMonth = expenseDate.getMonth();
-                const newYear = expenseDate.getFullYear().toString();
-
-                setExpenseData({
-                    ...expenseData,
-                    "Month": newMonth,
-                    "Year": newYear
-                });
-                form.reset();
-            })
-            .catch(() => console.log("this is in the fetch catch"));
-    } catch (error) {
-        console.error("This is in the catch: " + error.message);
+      await createExpense(formData)
+      form.reset()
+      await setExpenseData({ ...expenseData, Month: month - 1, Year: year })
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSaving(false)
     }
+  }
+
+  return (
+    <section className="panel add-expense-panel">
+      <div className="panel-heading"><div><p className="eyebrow">New transaction</p><h2>Add an expense</h2></div></div>
+      <form onSubmit={submit}>
+        <div className="form-grid">
+          <label>Date<input type="date" name="Date" required /></label>
+          <label>Amount<div className="currency-input"><span>$</span><input type="number" name="Amount" min="0.01" step="0.01" inputMode="decimal" placeholder="0.00" required /></div></label>
+          <label>Store<input type="text" name="Store" placeholder="Where did you shop?" required /></label>
+          <label>Items<input type="text" name="Items" placeholder="What did you buy?" required /></label>
+          <label className="full-width">Category<select defaultValue="" name="Category" required><option value="" disabled>Choose a category</option>{categories.map(category => <option key={category}>{category}</option>)}</select></label>
+        </div>
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <button className="primary-button" type="submit" disabled={saving}>{saving ? <><span className="spinner-border spinner-border-sm" aria-hidden="true" /> Saving...</> : 'Add expense'}</button>
+      </form>
+    </section>
+  )
 }
 
-return (
-    <div id="newExpense">
-        <h3>Add a new Expense</h3>
-        <form onSubmit={(e) => Submit(e)}>
-            <div className="form-group mt-4">
-                <label htmlFor="date">Date</label>
-                <input type="date" className="form-control" name="Date" id="date" required />
-            </div>
-            <div className="form-group mt-2">
-                <label htmlFor="amount">Amount</label>
-                <input type="number" className="form-control" name="Amount" id="amount" min="0" step=".01" inputMode="decimal" required />
-            </div>
-            <div className="form-group mt-2">
-                <label htmlFor="store">Store</label>
-                <input type="text" className="form-control" name="Store" id="store" required />
-            </div>
-            <div className="form-group mt-2">
-                <label htmlFor="items">Item(s)</label>
-                <input type="text" className="form-control" name="Items" id="items" required />
-            </div>
-            <div className="form-group mt-2">
-                <label htmlFor="category">Category</label>
-                <select defaultValue={""} className="form-control" id="category" name="Category" required>
-                    <option value="" disabled>Select...</option>
-                    <option value="Car Maintenance">Car Maintenance</option>
-                    <option value="Clothes">Clothes</option>
-                    <option value="Costco">Costco</option>
-                    <option value="Eating Out">Eating Out</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Gas">Gas</option>
-                    <option value="Gifts">Gifts</option>
-                    <option value="Giving">Giving</option>
-                    <option value="Groceries">Groceries</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Miscellaneous Needs">Miscellaneous Needs</option>
-                    <option value="Non-Essentials (Wants)">Non-Essentials (Wants)</option>
-                </select>
-            </div>
-            <button id="saveExpense" type="submit" className="btn mt-5">
-                Save
-            </button>
-            <button id="expenseSaving" className="btn mt-5" type="submit" disabled style={{ display: 'none' }}>
-                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                Saving...
-            </button>
-        </form>
-    </div>
-)
+Expense.propTypes = {
+  expenseData: PropTypes.shape({
+    Expenses: PropTypes.arrayOf(PropTypes.object).isRequired,
+    Month: PropTypes.number.isRequired,
+    Year: PropTypes.number.isRequired,
+  }).isRequired,
+  setExpenseData: PropTypes.func.isRequired,
 }
