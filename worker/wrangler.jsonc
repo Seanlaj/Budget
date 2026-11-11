@@ -33,7 +33,7 @@
       "name": "budget-lajeunesse",
       "vars": {
         "TEAM_DOMAIN": "https://broken-wind-f945.cloudflareaccess.com",
-        "POLICY_AUD": "",
+        "POLICY_AUD": "5b6fbcbb3e1658be6b25ec552ea26c14d6dba479dcaedadc2bbf35165fd47608",
         "PLAID_ENV": "production",
         "PLAID_REDIRECT_URI": "https://budget-lajeunesse.slajeun217.workers.dev/"
       },
