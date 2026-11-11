@@ -1,4 +1,4 @@
-import { buildHistoryRules, buildPlaidMatches, categorize, shouldSkip } from "./categorize.js";
+import { applySplitRule, buildHistoryRules, buildPlaidMatches, categorize, merchantKey, shouldSkip } from "./categorize.js";
 
 const SYNCABLE_TYPES = new Set(["depository", "credit"]);
 const TIME_ZONE = "America/Phoenix";
@@ -174,18 +174,22 @@ export async function syncItem(env, item) {
 
   const statements = [];
   for (const { transaction_id } of updates.removed) {
-    statements.push(env.DB.prepare("DELETE FROM Expenses WHERE PlaidTransactionId = ? AND Source = 'plaid'").bind(transaction_id));
+    statements.push(
+      env.DB.prepare("DELETE FROM Expenses WHERE SplitOf IN (SELECT Id FROM Expenses WHERE PlaidTransactionId = ?)").bind(transaction_id),
+      env.DB.prepare("DELETE FROM Expenses WHERE PlaidTransactionId = ? AND Source = 'plaid'").bind(transaction_id)
+    );
   }
   for (const txn of updates.modified) {
     if (shouldSkip(txn)) continue;
     statements.push(env.DB.prepare(
-      "UPDATE Expenses SET Amount = ?, Date = ? WHERE PlaidTransactionId = ?"
+      `UPDATE Expenses SET Amount = ?, Date = ? WHERE PlaidTransactionId = ?
+       AND Id NOT IN (SELECT SplitOf FROM Expenses WHERE SplitOf IS NOT NULL)`
     ).bind(Number(txn.amount.toFixed(2)), toStoredDate(txn.authorized_date || txn.date), txn.transaction_id));
   }
 
   let added = 0;
   if (updates.added.length) {
-    const [{ results: accountRows }, { results: ruleRows }, { results: historyRows }, { results: manualRows }, { results: categoryRows }] = await env.DB.batch([
+    const [{ results: accountRows }, { results: ruleRows }, { results: historyRows }, { results: manualRows }, { results: categoryRows }, { results: splitRows }] = await env.DB.batch([
       env.DB.prepare("SELECT AccountId, Name, Mask FROM PlaidAccounts WHERE ItemId = ?").bind(item.ItemId),
       env.DB.prepare("SELECT MerchantKey, Category FROM CategoryRules"),
       env.DB.prepare(
@@ -196,8 +200,10 @@ export async function syncItem(env, item) {
          WHERE (Source IS NULL OR Source = 'manual') AND substr(Date, -4, 4) >= ?
            AND Id NOT IN (SELECT DuplicateOf FROM Expenses WHERE DuplicateOf IS NOT NULL)`
       ).bind(item.ImportFrom.slice(0, 4)),
-      env.DB.prepare("SELECT Name, Active, PlaidMatch FROM Categories")
+      env.DB.prepare("SELECT Name, Active, PlaidMatch FROM Categories"),
+      env.DB.prepare("SELECT MerchantKey, Parts FROM SplitRules")
     ]);
+    const splitRules = new Map(splitRows.map((r) => [r.MerchantKey, JSON.parse(r.Parts)]));
     const accounts = new Map(accountRows.map((a) => [a.AccountId, a]));
     const activeNames = new Set(categoryRows.filter((c) => c.Active).map((c) => c.Name));
     const context = {
@@ -226,14 +232,26 @@ export async function syncItem(env, item) {
         usedManual.add(duplicate.Id);
         needsReview = true;
       }
+      const parts = duplicate ? null : applySplitRule(splitRules.get(merchantKey(store)), amount, activeNames);
+      if (parts) [category, needsReview] = [parts[0].category, false];
+      const items = `${account.Name}${account.Mask ? ` ••${account.Mask}` : ""}`;
+      const plaidCategory = txn.personal_finance_category?.detailed ?? null;
       statements.push(env.DB.prepare(
         `INSERT OR IGNORE INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, DuplicateOf, PlaidCategory)
          VALUES (?, ?, ?, ?, ?, 'plaid', ?, ?, ?, ?, ?)`
       ).bind(
-        toStoredDate(isoDate), amount, store, `${account.Name}${account.Mask ? ` ••${account.Mask}` : ""}`,
-        category, txn.transaction_id, txn.account_id, needsReview ? 1 : 0, duplicate?.Id ?? null,
-        txn.personal_finance_category?.detailed ?? null
+        toStoredDate(isoDate), parts ? parts[0].amount : amount, store, items,
+        category, txn.transaction_id, txn.account_id, needsReview ? 1 : 0, duplicate?.Id ?? null, plaidCategory
       ));
+      for (const [i, part] of (parts?.slice(1) ?? []).entries()) {
+        statements.push(env.DB.prepare(
+          `INSERT OR IGNORE INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, PlaidCategory, SplitOf)
+           VALUES (?, ?, ?, ?, ?, 'plaid', ?, ?, 0, ?, (SELECT Id FROM Expenses WHERE PlaidTransactionId = ?))`
+        ).bind(
+          toStoredDate(isoDate), part.amount, store, items, part.category, `${txn.transaction_id}#${i + 1}`,
+          txn.account_id, plaidCategory, txn.transaction_id
+        ));
+      }
       added++;
     }
   }

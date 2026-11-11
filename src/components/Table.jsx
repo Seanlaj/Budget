@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import PropTypes from 'prop-types'
 import { deleteExpense, reviewExpense } from './expenseData'
+import SplitEditor from './SplitEditor'
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
@@ -10,7 +11,23 @@ export default function Table({ expenseData, setExpenseData, loading, categories
   const [savingId, setSavingId] = useState(null)
   const [drafts, setDrafts] = useState({})
   const [error, setError] = useState('')
+  const [splittingId, setSplittingId] = useState(null)
   const reviewCount = expenseData.Expenses.filter(row => row.NeedsReview).length
+  const isSplit = row => row.SplitOf || expenseData.Expenses.some(other => other.SplitOf === row.Id)
+
+  function renderSplitEditor(row) {
+    const parent = expenseData.Expenses.find(other => other.Id === splittingId)
+    if (!parent || row.Id !== parent.Id) return null
+    const parts = [parent, ...expenseData.Expenses.filter(other => other.SplitOf === parent.Id)]
+    const close = () => setSplittingId(null)
+    return (
+      <tr className="split-row">
+        <td colSpan="6">
+          <SplitEditor parent={parent} parts={parts} categories={categories} onCancel={close} onDone={async () => { close(); await setExpenseData(expenseData) }} />
+        </td>
+      </tr>
+    )
+  }
 
   async function handleReview(row) {
     setSavingId(row.Id)
@@ -79,18 +96,24 @@ export default function Table({ expenseData, setExpenseData, loading, categories
             ) : expenseData.Expenses.length === 0 ? (
               <tr><td colSpan="6" className="empty-state">No expenses recorded for this month.</td></tr>
             ) : expenseData.Expenses.filter(row => row.Date !== 'Invalid Date').map(row => (
-              <tr key={row.Id} className={row.NeedsReview ? 'needs-review' : undefined}>
+              <Fragment key={row.Id}>
+              <tr className={row.NeedsReview ? 'needs-review' : undefined}>
                 <td data-label="Date">{row.Date}</td>
-                <td data-label="Store" className="primary-cell">{row.Store}{row.Source === 'plaid' && <span className="source-tag">Bank</span>}</td>
+                <td data-label="Store" className="primary-cell">{row.Store}{row.Source === 'plaid' && <span className="source-tag">Bank</span>}{isSplit(row) && <span className="source-tag">Split</span>}</td>
                 <td data-label="Items">{row.Items}</td>
                 <td data-label="Category">{renderCategory(row)}</td>
                 <td data-label="Amount" className="amount-cell">{currency.format(Number(row.Amount || 0))}</td>
                 <td className="action-cell">
-                  <button type="button" className="delete-button" onClick={() => handleDelete(row.Id)} disabled={deletingId === row.Id} aria-label={`Delete expense from ${row.Store}`} title="Delete expense">
+                  <button type="button" className="split-button" onClick={() => setSplittingId(row.SplitOf || row.Id)} aria-label={`Split expense from ${row.Store}`} title="Split across categories">
+                    <span aria-hidden="true">&#x2702;</span>
+                  </button>
+                  <button type="button" className="delete-button" onClick={() => handleDelete(row.Id)} disabled={deletingId === row.Id} aria-label={`Delete expense from ${row.Store}`} title={row.SplitOf ? 'Delete this part' : isSplit(row) ? 'Delete expense and all its parts' : 'Delete expense'}>
                     {deletingId === row.Id ? <span className="spinner-border spinner-border-sm" /> : <span aria-hidden="true">&times;</span>}
                   </button>
                 </td>
               </tr>
+              {renderSplitEditor(row)}
+              </Fragment>
             ))}
           </tbody>
         </table>

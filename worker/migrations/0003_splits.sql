@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS SplitRules (
+  MerchantKey TEXT PRIMARY KEY,
+  Parts TEXT NOT NULL,
+  UpdatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+ALTER TABLE Expenses ADD COLUMN SplitOf INTEGER;

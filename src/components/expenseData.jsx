@@ -32,6 +32,16 @@ export function reviewExpense(id, category) {
   return postJson('/api/expense/review', { id, category }, 'The category could not be saved.')
 }
 
+export async function splitExpense(id, parts, remember) {
+  const response = await fetch(`${API_URL}/api/expense/split`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, parts, remember }),
+  })
+  const body = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(body.error || 'The split could not be saved.')
+}
+
 export async function getCategories() {
   const response = await fetch(`${API_URL}/api/categories`)
   if (!response.ok) throw new Error('Categories could not be loaded.')

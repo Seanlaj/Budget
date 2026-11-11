@@ -32,6 +32,8 @@ export default {
         return await GetExpensesByCategory(request, env);
       if (pathname === "/api/expense/review" && request.method === "POST")
         return await ReviewExpense(request, env);
+      if (pathname === "/api/expense/split" && request.method === "POST")
+        return await SplitExpense(request, env);
       if (pathname === "/api/categories" && request.method === "GET")
         return await ListCategories(env);
       if (pathname === "/api/admin/category" && request.method === "POST")
@@ -103,17 +105,76 @@ async function ReviewExpense(request, env) {
   if (!Number.isInteger(id) || id <= 0 || typeof category !== "string") return json({ error: "Invalid request" }, 400);
   const known = await env.DB.prepare("SELECT Name FROM Categories WHERE Name = ? AND Active = 1").bind(category).first();
   if (!known) return json({ error: "Invalid request" }, 400);
-  const row = await env.DB.prepare("SELECT Store, Source FROM Expenses WHERE Id = ?").bind(id).first();
+  const row = await env.DB.prepare(
+    "SELECT Store, Source, SplitOf, EXISTS (SELECT 1 FROM Expenses WHERE SplitOf = ?1) AS HasParts FROM Expenses WHERE Id = ?1"
+  ).bind(id).first();
   if (!row) return json({ error: "Not found" }, 404);
   const statements = [
     env.DB.prepare("UPDATE Expenses SET Category = ?, NeedsReview = 0, DuplicateOf = NULL WHERE Id = ?").bind(category, id)
   ];
   const key = merchantKey(row.Store);
-  if (row.Source === "plaid" && key && !isAlwaysReviewed(row.Store)) {
+  if (row.Source === "plaid" && key && !isAlwaysReviewed(row.Store) && row.SplitOf === null && !row.HasParts) {
     statements.push(env.DB.prepare(
       `INSERT INTO CategoryRules (MerchantKey, Category) VALUES (?, ?)
        ON CONFLICT(MerchantKey) DO UPDATE SET Category = excluded.Category, UpdatedAt = datetime('now')`
     ).bind(key, category));
+  }
+  await env.DB.batch(statements);
+  return json({ ok: true });
+}
+
+// Splits one payment across categories. The original row keeps the first part; a single
+// part merges an existing split back together. `remember` applies the split to future
+// bank payments to the same payee, with the last part taking whatever is left.
+async function SplitExpense(request, env) {
+  const { id, parts, remember } = await readJson(request);
+  if (!Number.isInteger(id) || id <= 0 || !Array.isArray(parts) || parts.length < 1 || parts.length > 6) {
+    return json({ error: "Invalid request" }, 400);
+  }
+  const { results: active } = await env.DB.prepare("SELECT Name FROM Categories WHERE Active = 1").all();
+  const activeNames = new Set(active.map((c) => c.Name));
+  const clean = parts.map((p) => ({ category: p?.category, cents: Math.round(Number(p?.amount) * 100) }));
+  if (clean.some((p) => !activeNames.has(p.category) || !Number.isSafeInteger(p.cents) || p.cents <= 0)) {
+    return json({ error: "Each part needs a category and an amount above $0." }, 400);
+  }
+
+  let parent = await env.DB.prepare("SELECT * FROM Expenses WHERE Id = ?").bind(id).first();
+  if (parent?.SplitOf) parent = await env.DB.prepare("SELECT * FROM Expenses WHERE Id = ?").bind(parent.SplitOf).first();
+  if (!parent) return json({ error: "Not found" }, 404);
+  const { total } = await env.DB.prepare(
+    "SELECT COALESCE(SUM(ROUND(CAST(Amount AS REAL) * 100)), 0) AS total FROM Expenses WHERE SplitOf = ?"
+  ).bind(parent.Id).first();
+  const totalCents = Math.round(Number(parent.Amount) * 100) + total;
+  if (clean.reduce((sum, p) => sum + p.cents, 0) !== totalCents) {
+    return json({ error: `The parts must add up to $${(totalCents / 100).toFixed(2)}.` }, 400);
+  }
+
+  const statements = [
+    env.DB.prepare("DELETE FROM Expenses WHERE SplitOf = ?").bind(parent.Id),
+    env.DB.prepare("UPDATE Expenses SET Amount = ?, Category = ?, NeedsReview = 0, DuplicateOf = NULL WHERE Id = ?")
+      .bind(clean[0].cents / 100, clean[0].category, parent.Id)
+  ];
+  clean.slice(1).forEach((part, i) => {
+    statements.push(env.DB.prepare(
+      `INSERT INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, PlaidCategory, SplitOf)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
+    ).bind(
+      parent.Date, part.cents / 100, parent.Store, parent.Items, part.category, parent.Source ?? "manual",
+      parent.PlaidTransactionId ? `${parent.PlaidTransactionId}#${i + 1}` : null,
+      parent.AccountId ?? null, parent.PlaidCategory ?? null, parent.Id
+    ));
+  });
+  const key = merchantKey(parent.Store);
+  if (remember && parent.Source === "plaid" && key) {
+    if (clean.length > 1) {
+      const rule = clean.map((p, i) => ({ category: p.category, amount: i < clean.length - 1 ? p.cents / 100 : null }));
+      statements.push(env.DB.prepare(
+        `INSERT INTO SplitRules (MerchantKey, Parts) VALUES (?, ?)
+         ON CONFLICT(MerchantKey) DO UPDATE SET Parts = excluded.Parts, UpdatedAt = datetime('now')`
+      ).bind(key, JSON.stringify(rule)));
+    } else {
+      statements.push(env.DB.prepare("DELETE FROM SplitRules WHERE MerchantKey = ?").bind(key));
+    }
   }
   await env.DB.batch(statements);
   return json({ ok: true });
@@ -208,7 +269,7 @@ async function DeleteExpense(searchParams, env) {
   const id = Number(searchParams.get("id"));
   if (!Number.isInteger(id) || id <= 0) return json({ error: "Invalid id" }, 400);
   const { results } = await env.DB.prepare(
-    "DELETE FROM Expenses WHERE Id = ?"
+    "DELETE FROM Expenses WHERE Id = ?1 OR SplitOf = ?1"
   ).bind(id).all();
   return json(results);
 }

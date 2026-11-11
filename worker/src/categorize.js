@@ -13,14 +13,31 @@ const MISC_STORES = /\b(hobby lobby|dollar tree|dollar general|family dollar|mic
 const DESSERT = /\b(cold ?stone|bahama buck'?s|baskin|ice ?cream|shaved ice|gelato|frozen yogurt)\b/;
 const FUEL = /\b(gas|fuel)\b/;
 
+// Drops words containing digits (Zelle/check reference numbers) so recurring payees share a key.
 export function merchantKey(name) {
-  return String(name || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]/g, "");
+  const text = String(name || "").toLowerCase().normalize("NFKD");
+  const key = text.split(/\s+/).filter((word) => !/\d/.test(word)).join("").replace(/[^a-z0-9]/g, "");
+  return key.length >= 3 ? key : text.replace(/[^a-z0-9]/g, "");
 }
 
 export function shouldSkip(txn) {
   if (txn.pending || !(txn.amount > 0)) return true;
   const detailed = txn.personal_finance_category?.detailed || "";
   return SKIP_DETAILED.has(detailed) || detailed.startsWith("TRANSFER_IN") || detailed.startsWith("INCOME");
+}
+
+// Rule parts have fixed amounts except the last, which takes the remainder.
+// Returns null when the payment is too small to cover the fixed parts.
+export function applySplitRule(ruleParts, amount, activeNames) {
+  if (!ruleParts?.length || ruleParts.some((p) => !activeNames.has(p.category))) return null;
+  const fixed = ruleParts.slice(0, -1);
+  const fixedCents = fixed.reduce((sum, p) => sum + Math.round(p.amount * 100), 0);
+  const remainderCents = Math.round(amount * 100) - fixedCents;
+  if (remainderCents <= 0) return null;
+  return [
+    ...fixed.map((p) => ({ category: p.category, amount: p.amount })),
+    { category: ruleParts.at(-1).category, amount: remainderCents / 100 }
+  ];
 }
 
 // Store names used 2+ times with one category at least 75% of the time.
@@ -109,5 +126,5 @@ function pickCategory(txn, { learned, historyRules, plaidMatches }) {
 // Merchants that are always flagged, so corrections there shouldn't become rules.
 export function isAlwaysReviewed(storeName) {
   const text = String(storeName || "").toLowerCase();
-  return /\b(walmart|wal-mart|wm supercenter|amazon|amzn|target)\b/.test(text) && !/pharm/.test(text);
+  return (/\b(walmart|wal-mart|wm supercenter|amazon|amzn|target)\b/.test(text) && !/pharm/.test(text)) || /^check\b/.test(text);
 }

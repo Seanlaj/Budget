@@ -5,7 +5,8 @@ import { decryptToken, localIsoDate, plaid } from "./plaid.js";
 const CANDIDATES = [
   { name: "Mortgage & Rent", match: ["LOAN_PAYMENTS_MORTGAGE_PAYMENT", "RENT_AND_UTILITIES_RENT"] },
   { name: "Utilities", match: ["RENT_AND_UTILITIES_GAS_AND_ELECTRICITY", "RENT_AND_UTILITIES_WATER", "RENT_AND_UTILITIES_SEWAGE_AND_WASTE_MANAGEMENT", "RENT_AND_UTILITIES_OTHER_UTILITIES"] },
-  { name: "Phone & Internet", match: ["RENT_AND_UTILITIES_TELEPHONE", "RENT_AND_UTILITIES_INTERNET_AND_CABLE"] },
+  { name: "Phone", match: ["RENT_AND_UTILITIES_TELEPHONE"] },
+  { name: "Internet", match: ["RENT_AND_UTILITIES_INTERNET_AND_CABLE"] },
   { name: "Insurance", match: ["GENERAL_SERVICES_INSURANCE"] },
   { name: "Car Payment", match: ["LOAN_PAYMENTS_CAR_PAYMENT"] },
   { name: "Other Loan Payments", match: ["LOAN_PAYMENTS_STUDENT_LOAN_PAYMENT", "LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT", "LOAN_PAYMENTS_BNPL", "LOAN_PAYMENTS_OTHER_PAYMENT"] },
@@ -15,7 +16,6 @@ const CANDIDATES = [
   { name: "Home & Garden", match: ["HOME_IMPROVEMENT"] },
   { name: "Pets", match: ["MEDICAL_VETERINARY_SERVICES", "GENERAL_MERCHANDISE_PET_SUPPLIES"] },
   { name: "Travel", match: ["TRAVEL"] },
-  { name: "Transfers to People", match: ["TRANSFER_OUT_TRANSFER_OUT_FROM_APPS", "TRANSFER_OUT_OTHER_TRANSFER_OUT", "TRANSFER_OUT_WITHDRAWAL"] },
   { name: "Taxes & Fees", match: ["GOVERNMENT_AND_NON_PROFIT_TAX_PAYMENT", "GOVERNMENT_AND_NON_PROFIT_GOVERNMENT_DEPARTMENTS_AND_AGENCIES", "BANK_FEES"] }
 ];
 
