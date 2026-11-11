@@ -83,7 +83,7 @@
     <li>Deleting an expense</li>
     <li>Looking at past months</li>
     <li>Dark mode</li>
-    <li>Privacy and security</li>
+    <li>Is my information safe?</li>
     <li>Questions and troubleshooting</li>
   </ol>
 
@@ -96,6 +96,7 @@
     <li><b>By hand</b>, using the green <span class="ui round">+</span> button.</li>
   </ul>
   <div class="tip"><b>Good habit</b>Open the app once or twice a week, tap <span class="ui amber">Review</span> if it appears, and confirm the categories. It only takes a minute and keeps your numbers accurate.</div>
+  <div class="note"><b>Private and secure</b>Only your approved email address can open this app, and bank connections are read-only, so nothing can ever move your money. Section 15 explains exactly how your information is protected.</div>
 </section>
 
 <section>
@@ -272,14 +273,35 @@
 </section>
 
 <section>
-  <h2>15. Privacy and security</h2>
+  <h2>15. Is my information safe?</h2>
+  <p>Yes. The app was built with security as the first priority, using the same kind of protection banks and large companies use. Here is how your information is kept private.</p>
+
+  <h3>Only you can get in</h3>
   <ul>
-    <li><b>Only approved people can get in.</b> The app is protected by Cloudflare, and only approved email addresses can sign in.</li>
-    <li><b>Read-only bank access.</b> Bank connections go through Plaid and can only <i>read</i> transactions. The app can't move money, pay bills or change anything at your bank.</li>
-    <li><b>Your bank password is never stored in this app.</b> You type it into Plaid's secure window (or your bank's own site), not into the Budget app.</li>
-    <li><b>Encrypted.</b> The connection keys that let the app read your transactions are stored encrypted.</li>
-    <li><b>Separate from Sean's budget.</b> Your app and data are completely separate. Neither family can see the other's information.</li>
+    <li><b>The app is locked to your email address.</b> Only <b>238balaj@gmail.com</b> is on the approved list. Anyone else who opens the link sees only a sign-in page and is turned away. Nothing about your budget is shown to them.</li>
+    <li><b>A new code every time you sign in.</b> There's no password that could be guessed or stolen. Each time you sign in, a new one-time 6-digit code is emailed to you, and it expires after a few minutes.</li>
+    <li><b>Two separate locks.</b> Cloudflare checks your sign-in before the app even loads. The app then checks again on every request, so your information is only shown when both agree that you're approved.</li>
+    <li><b>Completely separate from anyone else's budget.</b> Your app has its own private database. Sean's budget lives in a different app and database. Neither family can see the other's information, and Sean can't open yours either.</li>
   </ul>
+
+  <h3>Your bank accounts stay protected</h3>
+  <ul>
+    <li><b>Read-only.</b> The bank connection can only <i>see</i> transactions. It cannot move money, make payments, transfer funds or change anything at your bank.</li>
+    <li><b>Your bank password is never given to this app.</b> You type it into Plaid's secure window or your bank's own website, never into the Budget app itself. Plaid is used by thousands of well-known finance apps.</li>
+    <li><b>You stay in control.</b> You can disconnect a bank at any time in Settings. You can also remove access from your bank's own website or app, in its security or connected-apps settings.</li>
+  </ul>
+
+  <h3>Your information is encrypted</h3>
+  <ul>
+    <li><b>Encrypted in transit.</b> Everything between your phone and the app travels over an encrypted connection (the padlock in your browser's address bar).</li>
+    <li><b>Encrypted at rest.</b> The keys that let the app read your bank transactions are stored encrypted with a secret key unique to your app.</li>
+    <li><b>Hosted on Cloudflare.</b> The app runs on Cloudflare, one of the largest internet security companies in the world, which protects millions of websites.</li>
+  </ul>
+
+  <div class="tip"><b>Your part: two simple habits</b>
+    1. <b>Never share your 6-digit sign-in code</b> with anyone. The app and Sean will never ask you for it.<br />
+    2. <b>Keep your email account secure</b> (a strong password and 2-step verification), because sign-in codes are sent there.
+  </div>
 
   <h2 style="margin-top:28px">16. Questions and troubleshooting</h2>
   <div class="avoid"><h3>The category list is empty when I add an expense.</h3>
