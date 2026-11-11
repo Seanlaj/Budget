@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
 import './App.css'
-import Expense from './components/Expense'
+import ExpenseModal from './components/ExpenseModal'
 import Table from './components/Table'
 import { getCategories, getTableData } from './components/expenseData'
 import RemainingBalance from './components/RemainingBalance'
@@ -17,6 +17,7 @@ function App() {
   const [status, setStatus] = useState({ loading: true, error: '' })
   const [categories, setCategories] = useState([])
   const [showSettings, setShowSettings] = useState(returningFromBank)
+  const [showAddExpense, setShowAddExpense] = useState(false)
 
   const loadCategories = useCallback(async () => {
     try {
@@ -74,11 +75,12 @@ function App() {
         <div><span>Available</span><strong className={totals.remaining < 0 ? 'negative' : 'positive'}>{totals.remaining.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</strong></div>
       </section>
       {status.error && <div className="alert-banner" role="alert">{status.error}</div>}
-      <section className="dashboard-grid">
-        <Expense expenseData={expenseData} setExpenseData={loadExpenses} categories={activeCategories.map(c => c.Name)} />
-        <RemainingBalance expenseData={expenseData} categories={activeCategories} />
-      </section>
+      <RemainingBalance expenseData={expenseData} categories={activeCategories} />
       <Table expenseData={expenseData} setExpenseData={loadExpenses} loading={status.loading} categories={activeCategories.map(c => c.Name)} />
+      <button type="button" className="add-expense-fab" onClick={() => setShowAddExpense(true)} aria-label="Add an expense" title="Add an expense">+</button>
+      {showAddExpense && (
+        <ExpenseModal expenseData={expenseData} setExpenseData={loadExpenses} categories={activeCategories.map(c => c.Name)} onClose={() => setShowAddExpense(false)} />
+      )}
     </main>
   )
 }

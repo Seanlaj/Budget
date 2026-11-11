@@ -192,8 +192,15 @@ function storedDateToDay(date) {
   return Number.isFinite(time) ? time / 86400000 : null;
 }
 
-// Groups entries with the same store, description and amount dated within a few days of each other.
-// Split payments are left out since their parts intentionally share a store and description.
+// "Frys" vs "Fry's Food & Drug Stores", "Mod" vs "MOD Pizza": one name starts the other.
+function similarStores(a, b) {
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  return short.length >= 3 && long.startsWith(short);
+}
+
+// Groups entries with the same amount and a similar store name dated within a few days of each other.
+// Descriptions are ignored since bank imports use the account name there.
+// Split payments are left out since their parts intentionally share a store.
 async function FindDuplicates(searchParams, env) {
   const monthIndex = Number(searchParams.get("month"));
   const year = Number(searchParams.get("year"));
@@ -205,30 +212,36 @@ async function FindDuplicates(searchParams, env) {
      WHERE substr(Date, 1, 2) = ? AND substr(Date, -4, 4) = ?
        AND SplitOf IS NULL AND Id NOT IN (SELECT SplitOf FROM Expenses WHERE SplitOf IS NOT NULL)`
   ).bind(String(monthIndex + 1).padStart(2, "0"), String(year)).all();
-  const byKey = new Map();
+  const byAmount = new Map();
   for (const row of results) {
     const day = storedDateToDay(row.Date);
     if (day === null) continue;
-    const items = String(row.Items ?? "").trim().toLowerCase().replace(/\s+/g, " ");
-    const key = `${merchantKey(row.Store)}|${items}|${Math.round(row.Amount * 100)}`;
-    if (!byKey.has(key)) byKey.set(key, []);
-    byKey.get(key).push({ ...row, day });
+    const cents = Math.round(row.Amount * 100);
+    if (!byAmount.has(cents)) byAmount.set(cents, []);
+    byAmount.get(cents).push({ ...row, day, key: merchantKey(row.Store) });
   }
 
   const groups = [];
-  for (const rows of byKey.values()) {
+  for (const rows of byAmount.values()) {
     if (rows.length < 2) continue;
     rows.sort((a, b) => a.day - b.day || a.Id - b.Id);
-    let cluster = [rows[0]];
-    for (const row of [...rows.slice(1), null]) {
-      if (row && row.day - cluster.at(-1).day <= DUPLICATE_WINDOW_DAYS) {
-        cluster.push(row);
-        continue;
+    const groupOf = rows.map((_, i) => i);
+    const root = (i) => (groupOf[i] === i ? i : (groupOf[i] = root(groupOf[i])));
+    for (let i = 0; i < rows.length; i++) {
+      for (let j = i + 1; j < rows.length && rows[j].day - rows[i].day <= DUPLICATE_WINDOW_DAYS; j++) {
+        if (similarStores(rows[i].key, rows[j].key)) groupOf[root(j)] = root(i);
       }
+    }
+    const clusters = new Map();
+    rows.forEach((row, i) => {
+      const r = root(i);
+      if (!clusters.has(r)) clusters.set(r, []);
+      clusters.get(r).push(row);
+    });
+    for (const cluster of clusters.values()) {
       if (cluster.length > 1 && cluster.some((r) => !r.DupChecked)) {
-        groups.push(cluster.map(({ day, DupChecked, ...rest }) => rest));
+        groups.push(cluster.map(({ day, key, DupChecked, ...rest }) => rest));
       }
-      cluster = row ? [row] : [];
     }
   }
   groups.sort((a, b) => storedDateToDay(b[0].Date) - storedDateToDay(a[0].Date));

@@ -15,7 +15,7 @@ export default function DuplicateFinder({ month, year, onChanged, onClose }) {
     try {
       const found = await findDuplicates(month, year)
       setGroups(found)
-      setKeep(Object.fromEntries(found.map(group => [groupKey(group), [group[0].Id]])))
+      setKeep(Object.fromEntries(found.map(group => [groupKey(group), [(group.find(row => row.Source === 'plaid') ?? group[0]).Id]])))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -54,7 +54,7 @@ export default function DuplicateFinder({ month, year, onChanged, onClose }) {
   return (
     <div className="duplicate-finder">
       <div className="duplicate-header">
-        <p>Entries this month with the same store, description and amount dated within 3 days of each other.</p>
+        <p>Entries this month with the same amount and a similar store name, dated within 3 days of each other. The bank import is kept by default.</p>
         <div className="button-row">
           <button type="button" className="secondary-button" onClick={scan} disabled={busy === 'scan'}>{busy === 'scan' ? 'Checking...' : 'Check again'}</button>
           <button type="button" className="link-button" onClick={onClose}>Close</button>

@@ -209,6 +209,32 @@ tbody tr:hover { background: #fafcfb; }
 .delete-button:hover:not(:disabled) { border-color: #e0b5b5; background: #fff3f2; }
 .empty-state { padding: 48px 20px; color: #778078; text-align: center; }
 
+.add-expense-fab {
+  position: fixed;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border: 0;
+  border-radius: 50%;
+  background: #1f7a4d;
+  color: #fff;
+  font-size: 2rem;
+  line-height: 1;
+  box-shadow: 0 8px 24px rgba(20, 60, 40, .3);
+  cursor: pointer;
+}
+.add-expense-fab:hover { background: #17643e; }
+.app-shell { padding-bottom: 100px; }
+.expense-modal { width: min(560px, calc(100% - 24px)); max-height: calc(100% - 24px); padding: 0; border: 0; border-radius: 10px; background: transparent; overflow: visible; }
+.expense-modal::backdrop { background: rgba(20, 28, 23, .45); }
+.expense-modal .add-expense-panel { box-shadow: 0 20px 50px rgba(20, 28, 23, .25); }
+.modal-close { position: absolute; top: 14px; right: 14px; z-index: 1; width: 34px; height: 34px; border: 0; border-radius: 6px; background: none; color: #566159; font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.modal-close:hover { background: #eef3ef; }
+
 .month-nav .settings-button { margin-left: 6px; font-size: 1.15rem; }
 .admin-view { display: grid; gap: 20px; }
 .admin-view .connections-panel { margin-top: 0; }

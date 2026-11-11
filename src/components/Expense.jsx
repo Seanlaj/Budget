@@ -2,7 +2,7 @@ import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { createExpense } from './expenseData'
 
-export default function Expense({ expenseData, setExpenseData, categories }) {
+export default function Expense({ expenseData, setExpenseData, categories, onSaved }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -17,6 +17,7 @@ export default function Expense({ expenseData, setExpenseData, categories }) {
       await createExpense(formData)
       form.reset()
       await setExpenseData({ ...expenseData, Month: month - 1, Year: year })
+      onSaved?.()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -29,7 +30,7 @@ export default function Expense({ expenseData, setExpenseData, categories }) {
       <div className="panel-heading"><div><p className="eyebrow">New transaction</p><h2>Add an expense</h2></div></div>
       <form onSubmit={submit}>
         <div className="form-grid">
-          <label>Date<input type="date" name="Date" required /></label>
+          <label>Date<input type="date" name="Date" required autoFocus /></label>
           <label>Amount<div className="currency-input"><span>$</span><input type="number" name="Amount" min="0.01" step="0.01" inputMode="decimal" placeholder="0.00" required /></div></label>
           <label>Store<input type="text" name="Store" placeholder="Where did you shop?" required /></label>
           <label>Items<input type="text" name="Items" placeholder="What did you buy?" required /></label>
@@ -50,4 +51,5 @@ Expense.propTypes = {
   }).isRequired,
   setExpenseData: PropTypes.func.isRequired,
   categories: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onSaved: PropTypes.func,
 }
