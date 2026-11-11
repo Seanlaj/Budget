@@ -181,6 +181,10 @@ input:focus, select:focus { border-color: #1f7a4d; background: #fff; outline: no
 .transactions-panel { margin-top: 20px; overflow: hidden; }
 .transactions-panel .panel-heading { margin: 0; padding: 24px 28px; border-bottom: 1px solid #e6eae6; }
 .transactions-panel .form-error { padding: 0 28px; }
+.table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 28px; border-bottom: 1px solid #e6eae6; }
+.table-toolbar input { flex: 1 1 240px; height: 38px; }
+.table-toolbar label { display: flex; align-items: center; gap: 8px; color: #6c776f; font-size: .82rem; white-space: nowrap; }
+.table-toolbar select { width: auto; height: 38px; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 15px 18px; border-bottom: 1px solid #edf0ed; text-align: left; vertical-align: middle; }
@@ -293,6 +297,8 @@ tr.split-row, tr.split-row:hover { background: #f6f9fd; }
   .form-grid { grid-template-columns: 1fr; }
   .form-grid .full-width { grid-column: auto; }
   .transactions-panel .panel-heading { padding: 20px 18px; }
+  .table-toolbar { padding: 12px 18px; }
+  .table-toolbar label, .table-toolbar select { flex: 1 1 auto; }
   .table-wrap, table, tbody, tr, td { width: 100%; max-width: 100%; }
   table, tbody, tr, td { display: block; }
   thead { display: none; }
