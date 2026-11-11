@@ -1,4 +1,4 @@
-const API_URL = 'https://d1-budget.slajeun217.workers.dev'
+const API_URL = ''
 
 export async function getTableData(month, year) {
   if (!Number.isInteger(Number(month)) || !Number.isInteger(Number(year))) throw new Error('Unable to load expenses for an invalid date.')

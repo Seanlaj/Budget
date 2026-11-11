@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "d1-budget",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  // Not secrets. Empty values make every /api request fail closed with 403.
+  // ALLOWED_EMAILS is set with `wrangler secret put` to keep it out of the repo.
+  "vars": {
+    "TEAM_DOMAIN": "https://broken-wind-f945.cloudflareaccess.com",
+    "POLICY_AUD": "23ee42e2b4627c52d24ef5dfa0c82c4b251d2f37e704841daa05bfdab5228224"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "prod-d1-budgetlaj",
+      "database_id": "ff2f2309-dc94-4e8a-9e17-3358ecc07921"
+    }
+  ]
+}
