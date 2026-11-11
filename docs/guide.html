@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Budget App — User Guide</title>
+<style>
+  @page { size: Letter; margin: 0.7in 0.75in; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #1d2621; font: 11pt/1.55 "Segoe UI", Inter, system-ui, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  h1, h2, h3 { color: #0f3d27; line-height: 1.2; }
+  h2 { margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid #d7e6dc; font-size: 17pt; break-after: avoid; }
+  h3 { margin: 18px 0 6px; font-size: 12.5pt; break-after: avoid; }
+  p { margin: 0 0 9px; }
+  ol, ul { margin: 0 0 10px; padding-left: 22px; }
+  li { margin-bottom: 4px; }
+  section { break-before: page; }
+  .avoid { break-inside: avoid; }
+  a { color: #1f7a4d; }
+  code, .url { font-family: Consolas, monospace; font-size: 10pt; background: #eef4f0; padding: 1px 5px; border-radius: 4px; }
+
+  .cover { height: 9.4in; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+  .logo { width: 140px; height: 140px; border-radius: 32px; display: grid; place-items: center; background: linear-gradient(135deg, #0a3d26, #26a062); box-shadow: 0 12px 30px rgba(10, 61, 38, .35); }
+  .logo span { width: 98px; height: 98px; border-radius: 50%; display: grid; place-items: center; border: 6px solid #e9c46a; color: #fff; font: 700 58px Georgia, serif; background: #12603c; }
+  .cover h1 { margin: 34px 0 8px; font-size: 38pt; }
+  .cover .sub { color: #4d5f54; font-size: 14pt; }
+  .cover .link { margin-top: 30px; font-size: 13pt; }
+  .cover .small { margin-top: 60px; color: #7a877f; font-size: 9.5pt; }
+
+  .toc { columns: 2; column-gap: 32px; padding-left: 20px; }
+  .toc li { break-inside: avoid; }
+
+  .tip, .note, .warn { margin: 10px 0 12px; padding: 10px 14px; border-radius: 8px; break-inside: avoid; }
+  .tip { background: #eef7f1; border-left: 4px solid #2d9260; }
+  .note { background: #eef3fb; border-left: 4px solid #2f5d94; }
+  .warn { background: #fff6e8; border-left: 4px solid #c9821f; }
+  .tip b:first-child, .note b:first-child, .warn b:first-child { display: block; margin-bottom: 2px; }
+
+  .ui { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; border: 1px solid #cfd7d1; border-radius: 5px; background: #fff; font-size: 9.5pt; font-weight: 600; vertical-align: 1px; white-space: nowrap; }
+  .ui.green { border: 0; background: #1f7a4d; color: #fff; }
+  .ui.round { width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: #1f7a4d; color: #fff; font-size: 13pt; }
+  .ui.amber { border-color: #e8cf9f; background: #fff7e8; color: #8a5414; }
+  .ui.tag { border: 0; background: #e8f0fb; color: #2f5d94; font-size: 8pt; height: 18px; }
+  .ui.cat { border: 0; background: #eef3ef; color: #405047; font-weight: 500; }
+
+  .mock { margin: 12px 0 14px; border: 1px solid #dfe4df; border-radius: 10px; background: #f3f5f1; padding: 14px; break-inside: avoid; font-size: 9.5pt; }
+  .mock .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .mock .card { background: #fff; border: 1px solid #dfe4df; border-radius: 8px; padding: 10px 12px; }
+  .mock .muted { color: #6c776f; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+  .mock .big { font-size: 15pt; font-weight: 700; color: #17211b; }
+  .mock .strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+  .mock .bar { height: 5px; background: #e9ede9; border-radius: 3px; margin-top: 4px; }
+  .mock .bar span { display: block; height: 100%; background: #2d9260; border-radius: 3px; }
+  .callout { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #c9821f; color: #fff; font-size: 8pt; font-weight: 700; margin-right: 4px; }
+  table.keys { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 10pt; }
+  table.keys td { padding: 6px 8px; border-bottom: 1px solid #e6eae6; vertical-align: top; }
+  table.keys td:first-child { width: 34%; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="logo"><span>$</span></div>
+  <h1>Budget</h1>
+  <div class="sub">A simple guide to tracking your household spending</div>
+  <div class="link">Your app: <span class="url">https://budget-lajeunesse.slajeun217.workers.dev</span></div>
+  <div class="small">Keep this guide handy. Questions? Ask Sean.</div>
+</div>
+
+<section>
+  <h2>What's inside</h2>
+  <ol class="toc">
+    <li>Signing in</li>
+    <li>Putting the app on your iPhone home screen</li>
+    <li>A quick tour of the main screen</li>
+    <li>First-time setup: create your categories</li>
+    <li>Connecting your bank and credit cards</li>
+    <li>Adding an expense by hand</li>
+    <li>Reviewing imported transactions</li>
+    <li>Changing a transaction's category</li>
+    <li>Splitting one payment into several categories</li>
+    <li>Searching and sorting</li>
+    <li>Finding and removing duplicates</li>
+    <li>Deleting an expense</li>
+    <li>Looking at past months</li>
+    <li>Dark mode</li>
+    <li>Privacy and security</li>
+    <li>Questions and troubleshooting</li>
+  </ol>
+
+  <h3>How the app works, in one minute</h3>
+  <p>You decide on a handful of <b>categories</b> (for example Groceries, Gas, Eating Out) and how much you want to spend on each one every month. That amount is the category's <b>monthly allowance</b>.</p>
+  <p>Every purchase is recorded as an <b>expense</b> with a category. The app adds them up and shows how much is left in each category for the month. A new month starts fresh automatically.</p>
+  <p>Expenses get into the app in two ways:</p>
+  <ul>
+    <li><b>Automatically</b> from your connected bank and credit cards (the app checks for new purchases every hour), or</li>
+    <li><b>By hand</b>, using the green <span class="ui round">+</span> button.</li>
+  </ul>
+  <div class="tip"><b>Good habit</b>Open the app once or twice a week, tap <span class="ui amber">Review</span> if it appears, and confirm the categories. It only takes a minute and keeps your numbers accurate.</div>
+</section>
+
+<section>
+  <h2>1. Signing in</h2>
+  <ol>
+    <li>Open the app link: <span class="url">https://budget-lajeunesse.slajeun217.workers.dev</span></li>
+    <li>A Cloudflare sign-in page appears. Type your email address (<b>238balaj@gmail.com</b>) and tap <b>Send me a code</b>.</li>
+    <li>Check that email inbox for a message with a 6-digit code. Type the code into the sign-in page.</li>
+    <li>You're in. The app remembers you on that device for a while, so you won't need a code every time.</li>
+  </ol>
+  <div class="note"><b>Why a code?</b>The app is locked so only approved email addresses can open it. Nobody else can see your information, even if they have the link.</div>
+  <div class="warn"><b>Code not arriving?</b>Check your spam or promotions folder, wait a minute, and make sure you typed the approved email address exactly. Only the approved address receives codes.</div>
+
+  <h2 style="margin-top:28px">2. Putting the app on your iPhone home screen</h2>
+  <p>This makes the app open like any other app, with its own green dollar-sign icon.</p>
+  <ol>
+    <li>Open the app link in <b>Safari</b> and sign in.</li>
+    <li>Tap the <b>Share</b> button (the square with an arrow pointing up).</li>
+    <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+    <li>The name will say <b>Budget</b>. Tap <b>Add</b>.</li>
+  </ol>
+  <div class="tip"><b>Android or computer?</b>On Android, use Chrome's menu &rarr; <b>Add to Home screen</b>. On a computer, just bookmark the page.</div>
+</section>
+
+<section>
+  <h2>3. A quick tour of the main screen</h2>
+  <div class="mock">
+    <div class="row">
+      <div><div class="muted">Household budget</div><div class="big">November 2026</div></div>
+      <div><span class="ui">&lsaquo;</span> <span class="ui">&rsaquo;</span> <span class="ui">&#9790;</span> <span class="ui">&#9881;</span> <span class="callout">1</span></div>
+    </div>
+    <div class="strip">
+      <div class="card"><div class="muted">Monthly budget</div><b>$2,500.00</b></div>
+      <div class="card"><div class="muted">Spent so far</div><b>$1,140.25</b></div>
+      <div class="card"><div class="muted">Available</div><b style="color:#187044">$1,359.75</b> <span class="callout">2</span></div>
+    </div>
+    <div class="card" style="margin-bottom:8px">
+      <div class="muted">Category balances <span class="callout">3</span></div>
+      <div class="row" style="margin-top:6px"><span>Groceries</span><b>$412.60</b></div>
+      <div class="bar"><span style="width:55%"></span></div>
+    </div>
+    <div class="card">
+      <div class="row"><div class="muted">Recent expenses <span class="callout">4</span></div><span class="ui amber">Review 3</span></div>
+      <div class="row" style="margin-top:8px"><span>11/08 &nbsp; <b>Costco</b> <span class="ui tag">Bank</span></span><span class="ui cat">Groceries</span><b>$140.00</b><span><span class="ui">&#9986;</span> <span class="ui">&times;</span></span></div>
+    </div>
+    <div style="text-align:right;margin-top:8px"><span class="callout">5</span> <span class="ui round">+</span></div>
+  </div>
+  <table class="keys">
+    <tr><td><span class="callout">1</span> Header buttons</td><td><span class="ui">&lsaquo;</span> <span class="ui">&rsaquo;</span> move to the previous or next month. <span class="ui">&#9790;</span> switches dark mode. <span class="ui">&#9881;</span> opens <b>Settings</b>.</td></tr>
+    <tr><td><span class="callout">2</span> Summary</td><td>Your total monthly budget, what's been spent so far this month, and what's still available. Green means you're under budget; red means over.</td></tr>
+    <tr><td><span class="callout">3</span> Category balances</td><td>How much is left in each category this month. The bar fills up as you spend and turns red if you go over.</td></tr>
+    <tr><td><span class="callout">4</span> Recent expenses</td><td>Every expense for the month. Bank imports show a small blue <span class="ui tag">Bank</span> tag. The <span class="ui amber">Review</span> button appears when something needs your attention.</td></tr>
+    <tr><td><span class="callout">5</span> Add button</td><td>The round green <span class="ui round">+</span> in the bottom-right corner adds an expense by hand.</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>4. First-time setup: create your categories</h2>
+  <p>Your app starts empty, so the first step is to create your categories. You can change them any time.</p>
+  <ol>
+    <li>Tap <span class="ui">&#9881;</span> in the top-right corner to open <b>Settings</b>.</li>
+    <li>Find the section <b>Categories &amp; monthly allowances</b>.</li>
+    <li>In the last row, type a name in <b>New category</b> (for example <i>Groceries</i>), enter the monthly amount, and tap <span class="ui green">Add</span>.</li>
+    <li>Repeat for each category.</li>
+    <li>Tap <span class="ui">&larr;</span> in the top-right corner to go back to the main screen.</li>
+  </ol>
+  <h3>Ideas to get started</h3>
+  <p>Groceries &middot; Eating Out &middot; Gas &middot; Car Maintenance &middot; Healthcare &middot; Utilities &middot; Phone &middot; Internet &middot; Insurance &middot; Mortgage or Rent &middot; Clothes &middot; Gifts &middot; Giving &middot; Entertainment &middot; Miscellaneous</p>
+  <div class="tip"><b>Include a "Miscellaneous" category</b>The app uses <b>Miscellaneous Needs</b> as its fallback for bank purchases it can't place. If you create a category with exactly that name, those purchases land there and wait for your review.</div>
+
+  <h3>Changing a category later</h3>
+  <ul>
+    <li><b>Rename it or change the amount:</b> edit the name or allowance in its row, then tap <span class="ui green">Save</span>. Renaming also updates every past expense in that category.</li>
+    <li><b>Stop using a category:</b> uncheck <b>Shown</b> and tap <span class="ui green">Save</span>. It disappears from the budget and the pickers, but past expenses are kept. Check it again to bring it back.</li>
+  </ul>
+
+  <h3>Let the app suggest categories</h3>
+  <p>After you connect a bank (next section), Settings has a <b>Suggested new categories</b> section. Tap <span class="ui">Analyze bank history</span>. The app looks at the last 90 days of bank activity, finds regular spending your categories don't cover yet (mortgage, insurance, utilities and so on), and proposes a monthly amount for each.</p>
+  <p>Check the ones you want, adjust the names and amounts if you like, and tap <span class="ui green">Add selected categories</span>. Your existing categories are never changed by this.</p>
+</section>
+
+<section>
+  <h2>5. Connecting your bank and credit cards</h2>
+  <p>Once connected, purchases appear in the app automatically about every hour. The connection is <b>read-only</b>: the app can see transactions, but it can never move money or make payments.</p>
+  <ol>
+    <li>Open <b>Settings</b> <span class="ui">&#9881;</span> and scroll to <b>Connected accounts</b>.</li>
+    <li>Tap <span class="ui green">Connect account</span>. A secure window from <b>Plaid</b> opens. Plaid is the service many finance apps use to connect to banks.</li>
+    <li>Search for your bank, sign in with your normal online-banking username and password, and approve any security code your bank sends.</li>
+    <li>Choose the accounts to share (checking, savings, credit cards) and finish.</li>
+    <li>Back in the app, the bank appears in the list. The first import can take a few minutes. Tap <span class="ui">Sync now</span> to check for new transactions right away.</li>
+  </ol>
+  <p>Repeat <b>Connect account</b> for each bank or card company. One bank login can include several accounts.</p>
+  <div class="note"><b>Some banks send you to their own website</b>Some banks, like Chase, take you to their own website or app to approve the connection and then bring you back to the Budget app. That's normal. The app opens Settings automatically to finish the connection.</div>
+  <h3>What gets imported</h3>
+  <ul>
+    <li>Purchases and payments from the date you connected onward (starting from the 1st of that month).</li>
+    <li>Pending charges appear once they post, usually in 1&ndash;3 days.</li>
+    <li>Paying off a credit card, transfers between your own accounts, and deposits are <b>not</b> counted as spending. That way nothing is counted twice.</li>
+  </ul>
+  <h3>Keeping connections healthy</h3>
+  <ul>
+    <li>If a bank shows <b>"Bank login expired — reconnect to resume syncing"</b> (usually after a password change), tap <span class="ui green">Reconnect</span> and sign in again.</li>
+    <li>To stop syncing a bank, tap <b style="color:#9a3636">Disconnect</b>. Expenses already imported stay in the app.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Adding an expense by hand</h2>
+  <p>Use this for cash purchases or anything that isn't on a connected account.</p>
+  <ol>
+    <li>Tap the round green <span class="ui round">+</span> in the bottom-right corner.</li>
+    <li>Fill in <b>Date</b>, <b>Amount</b>, <b>Store</b>, <b>Items</b> (a short description) and choose a <b>Category</b>.</li>
+    <li>Tap <span class="ui green">Add expense</span>. The window closes and the expense appears in the list.</li>
+  </ol>
+  <div class="warn"><b>Paid by card that's already connected?</b>Then you don't need to add it by hand. It will come in automatically. If you do add it by hand too, the app notices the likely duplicate and asks you about it (see section 7).</div>
+
+  <h2 style="margin-top:28px">7. Reviewing imported transactions</h2>
+  <p>The app places most bank purchases in a category by itself, and it gets smarter as you use it. When it isn't sure, it marks the transaction <b>Needs review</b> and an amber <span class="ui amber">Review 3</span> button appears above your expenses.</p>
+  <ol>
+    <li>Tap <span class="ui amber">Review</span>. A short list opens with each transaction's store, amount and date.</li>
+    <li>For each one, pick the right category and tap <span class="ui green">Save</span>.</li>
+    <li>When the list is empty it says <b>All caught up</b>. Close it with <span class="ui">&times;</span>.</li>
+  </ol>
+  <div class="tip"><b>The app learns</b>When you choose a category for a store, the app remembers it. Next time that store shows up, it's filed automatically. Stores like Walmart, Target and Amazon are always sent to review, because they sell many kinds of things.</div>
+  <h3>"Possible duplicate of a manual entry"</h3>
+  <p>If a bank purchase matches something you already entered by hand (same amount, within a few days), the app flags it. You'll see two choices:</p>
+  <ul>
+    <li><span class="ui green">Keep</span>: it's a different purchase. Keep both.</li>
+    <li><b style="color:#9a3636">Delete</b>: it's the same purchase. Removes the bank copy and keeps yours.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>8. Changing a transaction's category</h2>
+  <p>For any bank transaction, tap its gray category label (for example <span class="ui cat">Groceries</span>) in the list. Pick a new category and tap <span class="ui green">Save</span>. The app also remembers this choice for that store from now on.</p>
+
+  <h2 style="margin-top:28px">9. Splitting one payment into several categories</h2>
+  <p>Sometimes a single payment covers several things, like a Costco trip that was part groceries and part household items. You can split it.</p>
+  <ol>
+    <li>In the expense list, tap <span class="ui">&#9986;</span> (scissors) on that row.</li>
+    <li>For each part, choose a category and type an amount. Tap <b>+ Add part</b> for more parts (up to 6). <b>Use rest</b> fills in whatever is left.</li>
+    <li>The bottom line must say <b>Fully assigned</b> before you can save. It shows how much is left or how much you're over.</li>
+    <li>Tap <span class="ui green">Save split</span>. The parts appear as separate rows tagged <span class="ui tag">Split</span>.</li>
+  </ol>
+  <h3>Repeat payments, split the same way every time</h3>
+  <p>For a bank payment that repeats every month (for example one transfer that covers two bills), leave <b>Split future payments to this payee the same way</b> checked. Next month the app splits it for you. The last part always gets whatever is left over, in case the total changes a little.</p>
+  <p>To undo a split, tap <span class="ui">&#9986;</span> again and choose <b>Undo split</b>.</p>
+</section>
+
+<section>
+  <h2>10. Searching and sorting</h2>
+  <p>Right above the expense list:</p>
+  <ul>
+    <li><b>Search box</b>: type part of a store name or description (for example <i>costco</i>). The list shows only matching expenses, and the count shows "X of Y transactions." Clear the box to see everything again.</li>
+    <li><b>Sort by</b>: Date (newest first), Date (oldest first), Category, Store, or Amount (largest first).</li>
+  </ul>
+
+  <h2 style="margin-top:28px">11. Finding and removing duplicates</h2>
+  <p>If something might have been entered twice, tap <span class="ui">Find duplicates</span> above the list. The app checks the <b>month you're looking at</b> for entries with the same amount and a similar store name, dated within 3 days of each other.</p>
+  <p>For each possible duplicate group:</p>
+  <ul>
+    <li>Check the entry or entries to <b>keep</b> (the bank copy is checked for you), then tap <span class="ui green">Keep checked, delete 1</span>. You'll be asked to confirm.</li>
+    <li>Or tap <b>Not duplicates</b> if they're really separate purchases. The app won't flag them again.</li>
+  </ul>
+
+  <h2 style="margin-top:28px">12. Deleting an expense</h2>
+  <p>Tap <span class="ui" style="color:#9a3636">&times;</span> at the end of a row and confirm. <b>This can't be undone.</b> Deleting a split payment's original row deletes all of its parts.</p>
+
+  <h2 style="margin-top:28px">13. Looking at past months</h2>
+  <p>Use the <span class="ui">&lsaquo;</span> and <span class="ui">&rsaquo;</span> arrows at the top. Everything on the screen (totals, balances and the expense list) changes to that month. You can't move past the current month.</p>
+
+  <h2 style="margin-top:28px">14. Dark mode</h2>
+  <p>Tap <span class="ui">&#9790;</span> at the top to switch to a dark screen, which is easier on the eyes at night. Tap <span class="ui">&#9728;</span> to switch back. Each phone or computer remembers its own choice.</p>
+</section>
+
+<section>
+  <h2>15. Privacy and security</h2>
+  <ul>
+    <li><b>Only approved people can get in.</b> The app is protected by Cloudflare, and only approved email addresses can sign in.</li>
+    <li><b>Read-only bank access.</b> Bank connections go through Plaid and can only <i>read</i> transactions. The app can't move money, pay bills or change anything at your bank.</li>
+    <li><b>Your bank password is never stored in this app.</b> You type it into Plaid's secure window (or your bank's own site), not into the Budget app.</li>
+    <li><b>Encrypted.</b> The connection keys that let the app read your transactions are stored encrypted.</li>
+    <li><b>Separate from Sean's budget.</b> Your app and data are completely separate. Neither family can see the other's information.</li>
+  </ul>
+
+  <h2 style="margin-top:28px">16. Questions and troubleshooting</h2>
+  <div class="avoid"><h3>The category list is empty when I add an expense.</h3>
+  <p>Create your categories first in Settings (section 4).</p></div>
+  <div class="avoid"><h3>A purchase I made today isn't showing up.</h3>
+  <p>Card purchases appear once they finish processing at the bank, usually within 1&ndash;3 days. You can tap <span class="ui">Sync now</span> in Settings to check right away.</p></div>
+  <div class="avoid"><h3>A purchase went into the wrong category.</h3>
+  <p>Tap its category label in the list and choose the right one (section 8). The app will remember for next time.</p></div>
+  <div class="avoid"><h3>The same purchase shows up twice.</h3>
+  <p>Use <span class="ui">Find duplicates</span> (section 11) or delete one copy with <span class="ui" style="color:#9a3636">&times;</span>.</p></div>
+  <div class="avoid"><h3>A bank says "login expired."</h3>
+  <p>Open Settings and tap <span class="ui green">Reconnect</span> next to that bank (section 5).</p></div>
+  <div class="avoid"><h3>The page says "Forbidden" or won't load my expenses.</h3>
+  <p>Your sign-in may have expired. Close the app completely, open it again and sign in with your email code. If it keeps happening, contact Sean.</p></div>
+  <div class="avoid"><h3>I want to add another person (for example a second email).</h3>
+  <p>Ask Sean. He can approve another email address for the app.</p></div>
+</section>
+
+</body>
+</html>

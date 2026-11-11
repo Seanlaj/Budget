@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "npm --prefix .. run build && wrangler deploy"
+    "deploy": "npm --prefix .. run build && wrangler deploy",
+    "deploy:lajeunesse": "npm --prefix .. run build && wrangler deploy --env lajeunesse"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
