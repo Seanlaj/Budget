@@ -8,6 +8,14 @@
     <link href="./src/assets/manifest.json" rel="manifest" />
     <meta name="viewport" content="width=device-width, initial-scale=0.8" />
     <title>Budget</title>
+    <script>
+      (function () {
+        var saved = localStorage.getItem('theme');
+        var theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.bsTheme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
