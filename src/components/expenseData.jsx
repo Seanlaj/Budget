@@ -17,3 +17,40 @@ export async function deleteExpense(id) {
   const response = await fetch(`${API_URL}/api/delete?id=${encodeURIComponent(id)}`, { method: 'POST' })
   if (!response.ok) throw new Error('The expense could not be deleted.')
 }
+
+async function postJson(path, body, errorMessage) {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body ?? {}),
+  })
+  if (!response.ok) throw new Error(errorMessage)
+  return response.json()
+}
+
+export function reviewExpense(id, category) {
+  return postJson('/api/expense/review', { id, category }, 'The category could not be saved.')
+}
+
+export async function getConnections() {
+  const response = await fetch(`${API_URL}/api/plaid/items`)
+  if (!response.ok) throw new Error('Bank connections could not be loaded.')
+  return response.json()
+}
+
+export async function createLinkToken(itemId) {
+  const { linkToken } = await postJson('/api/plaid/link-token', itemId ? { itemId } : {}, 'Could not start the bank connection.')
+  return linkToken
+}
+
+export function exchangePublicToken(publicToken, institutionName) {
+  return postJson('/api/plaid/exchange', { publicToken, institutionName }, 'The bank connection could not be saved.')
+}
+
+export function syncNow() {
+  return postJson('/api/plaid/sync', {}, 'Sync failed. Please try again.')
+}
+
+export function removeConnection(itemId) {
+  return postJson('/api/plaid/remove', { itemId }, 'The connection could not be removed.')
+}

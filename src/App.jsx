@@ -7,6 +7,7 @@ import { getTableData } from './components/expenseData'
 import RemainingBalance from './components/RemainingBalance'
 import { BUDGETS } from './components/budgetConfig'
 import Title from './components/Title'
+import Accounts from './components/Accounts'
 
 function App() {
   const today = new Date()
@@ -48,6 +49,7 @@ function App() {
         <Expense expenseData={expenseData} setExpenseData={loadExpenses} />
         <RemainingBalance expenseData={expenseData} />
       </section>
+      <Accounts onSynced={() => loadExpenses(expenseData)} />
       <Table expenseData={expenseData} setExpenseData={loadExpenses} loading={status.loading} />
     </main>
   )
