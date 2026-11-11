@@ -31,6 +31,7 @@
   "env": {
     "lajeunesse": {
       "name": "budget-lajeunesse",
+      "preview_urls": false,
       "vars": {
         "TEAM_DOMAIN": "https://broken-wind-f945.cloudflareaccess.com",
         "POLICY_AUD": "5b6fbcbb3e1658be6b25ec552ea26c14d6dba479dcaedadc2bbf35165fd47608",
