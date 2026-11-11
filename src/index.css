@@ -196,6 +196,28 @@ tbody tr:hover { background: #fafcfb; }
 .delete-button:hover:not(:disabled) { border-color: #e0b5b5; background: #fff3f2; }
 .empty-state { padding: 48px 20px; color: #778078; text-align: center; }
 
+.month-nav .settings-button { margin-left: 6px; font-size: 1.15rem; }
+.admin-view { display: grid; gap: 20px; }
+.admin-view .connections-panel { margin-top: 0; }
+.admin-panel { padding: 24px 28px; }
+.admin-panel .panel-heading { margin-bottom: 12px; }
+.admin-panel > .empty-note { margin-bottom: 16px; }
+.admin-table td { padding: 8px 10px; }
+.admin-table input[type="number"], .admin-table .currency-input { max-width: 160px; }
+.admin-table input { height: 38px; }
+.admin-actions { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.inline-error { margin: 0; }
+.check-label { display: inline-flex; align-items: center; gap: 6px; font-size: .84rem; }
+.check-label input, .suggestion-list input[type="checkbox"] { width: 18px; height: 18px; }
+tr.inactive-row td { opacity: .6; }
+tr.new-row td { background: #fafbfa; }
+.suggestion-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.suggestion-list li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: center; border: 1px solid #e6eae6; border-radius: 6px; padding: 12px 14px; }
+.suggestion-list li.unchecked { opacity: .55; }
+.suggestion-fields { display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 8px; }
+.suggestion-fields input { height: 38px; }
+.suggestion-detail { grid-column: 2; color: #6c776f; font-size: .78rem; overflow-wrap: anywhere; }
+
 .connections-panel { margin-top: 20px; padding: 24px 28px; }
 .connections-panel .panel-heading { margin-bottom: 16px; }
 .button-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -264,6 +286,12 @@ tr.needs-review { background: #fffaf0; }
   .empty-state { display: block; padding: 40px 16px; }
   .empty-state::before { display: none; }
   .connections-panel { padding: 20px 18px; }
+  .admin-panel { padding: 20px 18px; }
+  .admin-panel .panel-heading { flex-direction: column; align-items: flex-start; }
+  .admin-table tbody tr { padding-right: 18px; }
+  .admin-table .admin-actions { position: static; display: flex; padding-top: 8px; }
+  .admin-table td { display: grid; padding: 4px 0; }
+  .suggestion-fields { grid-template-columns: 1fr; }
   .connections-panel .panel-heading { flex-direction: column; align-items: flex-start; }
   .connection-list li { flex-direction: column; align-items: flex-start; }
   .review-controls { flex-wrap: wrap; }

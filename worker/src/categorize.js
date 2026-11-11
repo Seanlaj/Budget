@@ -1,7 +1,4 @@
-export const CATEGORIES = [
-  "Car Maintenance", "Clothes", "Costco", "Eating Out", "Entertainment", "Gas", "Gifts",
-  "Giving", "Groceries", "Healthcare", "Miscellaneous Needs", "Non-Essentials (Wants)"
-];
+const FALLBACK = "Miscellaneous Needs";
 
 // Own-account money movement; the matching card charges are imported instead.
 const SKIP_DETAILED = new Set([
@@ -27,11 +24,11 @@ export function shouldSkip(txn) {
 }
 
 // Store names used 2+ times with one category at least 75% of the time.
-export function buildHistoryRules(rows) {
+export function buildHistoryRules(rows, activeNames) {
   const byKey = new Map();
   for (const { Store, Category, n } of rows) {
     const key = merchantKey(Store);
-    if (key.length < 4 || !CATEGORIES.includes(Category)) continue;
+    if (key.length < 4 || !activeNames.has(Category)) continue;
     const entry = byKey.get(key) || { total: 0, best: null, bestN: 0 };
     entry.total += n;
     if (n > entry.bestN) Object.assign(entry, { best: Category, bestN: n });
@@ -46,7 +43,7 @@ export function buildHistoryRules(rows) {
 
 function fromPlaidCategory(pfc) {
   const detailed = pfc?.detailed || "";
-  const primary = pfc?.primary || detailed;
+  const primary = detailed || pfc?.primary || "";
   const confident = ["HIGH", "VERY_HIGH"].includes(pfc?.confidence_level);
   if (detailed === "FOOD_AND_DRINK_GROCERIES") return ["Groceries", !confident];
   if (primary.startsWith("FOOD_AND_DRINK")) return ["Eating Out", !confident];
@@ -61,10 +58,30 @@ function fromPlaidCategory(pfc) {
 }
 
 // Returns [category, needsReview].
-export function categorize(txn, { learned, historyRules }) {
+export function categorize(txn, context) {
+  const [category, needsReview] = pickCategory(txn, context);
+  if (context.activeNames.has(category)) return [category, needsReview];
+  const fallback = context.activeNames.has(FALLBACK) ? FALLBACK : [...context.activeNames][0];
+  return [fallback, true];
+}
+
+// Category settings rows -> sorted [bankCategoryPrefix, categoryName] pairs.
+export function buildPlaidMatches(categoryRows) {
+  const pairs = [];
+  for (const row of categoryRows) {
+    if (!row.Active || !row.PlaidMatch) continue;
+    for (const prefix of row.PlaidMatch.split(",")) {
+      if (prefix.trim()) pairs.push([prefix.trim(), row.Name]);
+    }
+  }
+  return pairs.sort((a, b) => b[0].length - a[0].length);
+}
+
+function pickCategory(txn, { learned, historyRules, plaidMatches }) {
   const text = `${txn.merchant_name || ""} ${txn.name || ""}`.toLowerCase();
   const key = merchantKey(txn.merchant_name || txn.name);
-  const isFuel = FUEL.test(text) || txn.personal_finance_category?.detailed === "TRANSPORTATION_GAS";
+  const detailed = txn.personal_finance_category?.detailed || "";
+  const isFuel = FUEL.test(text) || detailed === "TRANSPORTATION_GAS";
 
   if (/\b(walmart|wal-mart|wm supercenter)\b/.test(text)) {
     return /pharm/.test(text) ? ["Healthcare", false] : ["Groceries", true];
@@ -79,6 +96,9 @@ export function categorize(txn, { learned, historyRules }) {
   if (DESSERT.test(text)) return ["Entertainment", false];
   if (CLOTHING.test(text)) return ["Clothes", false];
   if (MISC_STORES.test(text)) return ["Miscellaneous Needs", false];
+
+  const plaidMatch = plaidMatches.find(([prefix]) => detailed.startsWith(prefix));
+  if (plaidMatch) return [plaidMatch[1], false];
 
   for (const [historyKey, category] of historyRules) {
     if (key === historyKey || key.startsWith(historyKey)) return [category, false];

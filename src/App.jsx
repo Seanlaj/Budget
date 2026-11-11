@@ -3,16 +3,28 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import './App.css'
 import Expense from './components/Expense'
 import Table from './components/Table'
-import { getTableData } from './components/expenseData'
+import { getCategories, getTableData } from './components/expenseData'
 import RemainingBalance from './components/RemainingBalance'
-import { BUDGETS } from './components/budgetConfig'
 import Title from './components/Title'
-import Accounts from './components/Accounts'
+import Admin from './components/Admin'
+
+// Banks using OAuth redirect back with this parameter; the connection finishes on the settings screen.
+const returningFromBank = window.location.search.includes('oauth_state_id=')
 
 function App() {
   const today = new Date()
   const [expenseData, setExpenseData] = useState({ Expenses: [], Month: today.getMonth(), Year: today.getFullYear() })
   const [status, setStatus] = useState({ loading: true, error: '' })
+  const [categories, setCategories] = useState([])
+  const [showSettings, setShowSettings] = useState(returningFromBank)
+
+  const loadCategories = useCallback(async () => {
+    try {
+      setCategories(await getCategories())
+    } catch (error) {
+      setStatus(s => ({ ...s, error: error.message }))
+    }
+  }, [])
 
   const loadExpenses = useCallback(async (selection) => {
     setStatus({ loading: true, error: '' })
@@ -27,18 +39,35 @@ function App() {
 
   useEffect(() => {
     const date = new Date()
+    loadCategories()
     loadExpenses({ Expenses: [], Month: date.getMonth(), Year: date.getFullYear() })
-  }, [loadExpenses])
+  }, [loadCategories, loadExpenses])
+
+  const activeCategories = useMemo(() => categories.filter(c => c.Active), [categories])
 
   const totals = useMemo(() => {
     const spent = expenseData.Expenses.reduce((sum, expense) => sum + Number(expense.Amount || 0), 0)
-    const budget = Object.values(BUDGETS).reduce((sum, amount) => sum + amount, 0)
+    const budget = activeCategories.reduce((sum, c) => sum + c.MonthlyBudget, 0)
     return { spent, budget, remaining: budget - spent }
-  }, [expenseData.Expenses])
+  }, [expenseData.Expenses, activeCategories])
+
+  const reloadAll = useCallback(async () => {
+    await Promise.all([loadCategories(), loadExpenses(expenseData)])
+  }, [loadCategories, loadExpenses, expenseData])
+
+  if (showSettings) {
+    return (
+      <main className="app-shell">
+        <Title getExpenseData={loadExpenses} expenseData={expenseData} settingsOpen onToggleSettings={() => setShowSettings(false)} />
+        {status.error && <div className="alert-banner" role="alert">{status.error}</div>}
+        <Admin categories={categories} onCategoriesChanged={reloadAll} onSynced={() => loadExpenses(expenseData)} />
+      </main>
+    )
+  }
 
   return (
     <main className="app-shell">
-      <Title getExpenseData={loadExpenses} expenseData={expenseData} />
+      <Title getExpenseData={loadExpenses} expenseData={expenseData} settingsOpen={false} onToggleSettings={() => setShowSettings(true)} />
       <section className="summary-strip" aria-label="Monthly summary">
         <div><span>Monthly budget</span><strong>{totals.budget.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</strong></div>
         <div><span>Spent so far</span><strong>{totals.spent.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</strong></div>
@@ -46,11 +75,10 @@ function App() {
       </section>
       {status.error && <div className="alert-banner" role="alert">{status.error}</div>}
       <section className="dashboard-grid">
-        <Expense expenseData={expenseData} setExpenseData={loadExpenses} />
-        <RemainingBalance expenseData={expenseData} />
+        <Expense expenseData={expenseData} setExpenseData={loadExpenses} categories={activeCategories.map(c => c.Name)} />
+        <RemainingBalance expenseData={expenseData} categories={activeCategories} />
       </section>
-      <Accounts onSynced={() => loadExpenses(expenseData)} />
-      <Table expenseData={expenseData} setExpenseData={loadExpenses} loading={status.loading} />
+      <Table expenseData={expenseData} setExpenseData={loadExpenses} loading={status.loading} categories={activeCategories.map(c => c.Name)} />
     </main>
   )
 }

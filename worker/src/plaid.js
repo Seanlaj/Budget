@@ -1,4 +1,4 @@
-import { buildHistoryRules, categorize, shouldSkip } from "./categorize.js";
+import { buildHistoryRules, buildPlaidMatches, categorize, shouldSkip } from "./categorize.js";
 
 const SYNCABLE_TYPES = new Set(["depository", "credit"]);
 const TIME_ZONE = "America/Phoenix";
@@ -11,7 +11,7 @@ export class PlaidError extends Error {
   }
 }
 
-async function plaid(env, path, body) {
+export async function plaid(env, path, body) {
   const host = env.PLAID_ENV === "production" ? "production" : "sandbox";
   const res = await fetch(`https://${host}.plaid.com${path}`, {
     method: "POST",
@@ -47,7 +47,7 @@ async function encryptToken(env, itemId, token) {
   return `${b64(iv)}.${b64(cipher)}`;
 }
 
-async function decryptToken(env, itemId, stored) {
+export async function decryptToken(env, itemId, stored) {
   const [iv, cipher] = stored.split(".");
   const plain = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: unb64(iv), additionalData: new TextEncoder().encode(itemId) },
@@ -57,7 +57,7 @@ async function decryptToken(env, itemId, stored) {
   return new TextDecoder().decode(plain);
 }
 
-function localIsoDate(date = new Date()) {
+export function localIsoDate(date = new Date()) {
   return date.toLocaleDateString("en-CA", { timeZone: TIME_ZONE });
 }
 
@@ -185,7 +185,7 @@ export async function syncItem(env, item) {
 
   let added = 0;
   if (updates.added.length) {
-    const [{ results: accountRows }, { results: ruleRows }, { results: historyRows }, { results: manualRows }] = await env.DB.batch([
+    const [{ results: accountRows }, { results: ruleRows }, { results: historyRows }, { results: manualRows }, { results: categoryRows }] = await env.DB.batch([
       env.DB.prepare("SELECT AccountId, Name, Mask FROM PlaidAccounts WHERE ItemId = ?").bind(item.ItemId),
       env.DB.prepare("SELECT MerchantKey, Category FROM CategoryRules"),
       env.DB.prepare(
@@ -195,12 +195,16 @@ export async function syncItem(env, item) {
         `SELECT Id, Date, CAST(Amount AS REAL) AS Amount FROM Expenses
          WHERE (Source IS NULL OR Source = 'manual') AND substr(Date, -4, 4) >= ?
            AND Id NOT IN (SELECT DuplicateOf FROM Expenses WHERE DuplicateOf IS NOT NULL)`
-      ).bind(item.ImportFrom.slice(0, 4))
+      ).bind(item.ImportFrom.slice(0, 4)),
+      env.DB.prepare("SELECT Name, Active, PlaidMatch FROM Categories")
     ]);
     const accounts = new Map(accountRows.map((a) => [a.AccountId, a]));
+    const activeNames = new Set(categoryRows.filter((c) => c.Active).map((c) => c.Name));
     const context = {
       learned: new Map(ruleRows.map((r) => [r.MerchantKey, r.Category])),
-      historyRules: buildHistoryRules(historyRows)
+      historyRules: buildHistoryRules(historyRows, activeNames),
+      plaidMatches: buildPlaidMatches(categoryRows),
+      activeNames
     };
     const usedManual = new Set();
 
@@ -223,11 +227,12 @@ export async function syncItem(env, item) {
         needsReview = true;
       }
       statements.push(env.DB.prepare(
-        `INSERT OR IGNORE INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, DuplicateOf)
-         VALUES (?, ?, ?, ?, ?, 'plaid', ?, ?, ?, ?)`
+        `INSERT OR IGNORE INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, DuplicateOf, PlaidCategory)
+         VALUES (?, ?, ?, ?, ?, 'plaid', ?, ?, ?, ?, ?)`
       ).bind(
         toStoredDate(isoDate), amount, store, `${account.Name}${account.Mask ? ` ••${account.Mask}` : ""}`,
-        category, txn.transaction_id, txn.account_id, needsReview ? 1 : 0, duplicate?.Id ?? null
+        category, txn.transaction_id, txn.account_id, needsReview ? 1 : 0, duplicate?.Id ?? null,
+        txn.personal_finance_category?.detailed ?? null
       ));
       added++;
     }

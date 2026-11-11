@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
-export default function Title({ getExpenseData, expenseData }) {
+export default function Title({ getExpenseData, expenseData, settingsOpen, onToggleSettings }) {
   const now = new Date()
   const isFirstMonth = expenseData.Month === 2 && Number(expenseData.Year) === 2024
   const isCurrentMonth = expenseData.Month === now.getMonth() && Number(expenseData.Year) === now.getFullYear()
@@ -16,14 +16,21 @@ export default function Title({ getExpenseData, expenseData }) {
     <header className="app-header">
       <div>
         <p className="brand">Household budget</p>
-        <h1>{months[expenseData.Month]} {expenseData.Year}</h1>
+        <h1>{settingsOpen ? 'Settings' : `${months[expenseData.Month]} ${expenseData.Year}`}</h1>
       </div>
-      <nav className="month-nav" aria-label="Change month">
-        <button type="button" onClick={() => changeMonth(-1)} disabled={isFirstMonth} aria-label="Previous month" title="Previous month">
-          <span aria-hidden="true">&lsaquo;</span>
-        </button>
-        <button type="button" onClick={() => changeMonth(1)} disabled={isCurrentMonth} aria-label="Next month" title="Next month">
-          <span aria-hidden="true">&rsaquo;</span>
+      <nav className="month-nav" aria-label={settingsOpen ? 'Settings' : 'Change month'}>
+        {!settingsOpen && (
+          <>
+            <button type="button" onClick={() => changeMonth(-1)} disabled={isFirstMonth} aria-label="Previous month" title="Previous month">
+              <span aria-hidden="true">&lsaquo;</span>
+            </button>
+            <button type="button" onClick={() => changeMonth(1)} disabled={isCurrentMonth} aria-label="Next month" title="Next month">
+              <span aria-hidden="true">&rsaquo;</span>
+            </button>
+          </>
+        )}
+        <button type="button" className="settings-button" onClick={onToggleSettings} aria-label={settingsOpen ? 'Back to budget' : 'Settings'} title={settingsOpen ? 'Back to budget' : 'Settings'}>
+          <span aria-hidden="true">{settingsOpen ? '←' : '⚙'}</span>
         </button>
       </nav>
     </header>
@@ -37,4 +44,6 @@ Title.propTypes = {
     Month: PropTypes.number.isRequired,
     Year: PropTypes.number.isRequired,
   }).isRequired,
+  settingsOpen: PropTypes.bool.isRequired,
+  onToggleSettings: PropTypes.func.isRequired,
 }

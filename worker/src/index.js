@@ -1,6 +1,7 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { CATEGORIES, isAlwaysReviewed, merchantKey } from "./categorize.js";
+import { isAlwaysReviewed, merchantKey } from "./categorize.js";
 import { createLinkToken, exchangePublicToken, listItems, PlaidError, removeItem, syncAll } from "./plaid.js";
+import { buildSuggestions } from "./suggest.js";
 
 let jwks;
 const ITEM_ID = /^[A-Za-z0-9_-]{10,100}$/;
@@ -31,6 +32,12 @@ export default {
         return await GetExpensesByCategory(request, env);
       if (pathname === "/api/expense/review" && request.method === "POST")
         return await ReviewExpense(request, env);
+      if (pathname === "/api/categories" && request.method === "GET")
+        return await ListCategories(env);
+      if (pathname === "/api/admin/category" && request.method === "POST")
+        return await SaveCategory(request, env);
+      if (pathname === "/api/admin/suggestions" && request.method === "GET")
+        return json(await buildSuggestions(env));
       if (pathname === "/api/plaid/items" && request.method === "GET")
         return json(await listItems(env));
       if (pathname === "/api/plaid/link-token" && request.method === "POST")
@@ -93,7 +100,9 @@ async function RemoveItem(request, env) {
 // Saving a category clears review flags and, for bank imports, teaches the merchant rule.
 async function ReviewExpense(request, env) {
   const { id, category } = await readJson(request);
-  if (!Number.isInteger(id) || id <= 0 || !CATEGORIES.includes(category)) return json({ error: "Invalid request" }, 400);
+  if (!Number.isInteger(id) || id <= 0 || typeof category !== "string") return json({ error: "Invalid request" }, 400);
+  const known = await env.DB.prepare("SELECT Name FROM Categories WHERE Name = ? AND Active = 1").bind(category).first();
+  if (!known) return json({ error: "Invalid request" }, 400);
   const row = await env.DB.prepare("SELECT Store, Source FROM Expenses WHERE Id = ?").bind(id).first();
   if (!row) return json({ error: "Not found" }, 404);
   const statements = [
@@ -105,6 +114,59 @@ async function ReviewExpense(request, env) {
       `INSERT INTO CategoryRules (MerchantKey, Category) VALUES (?, ?)
        ON CONFLICT(MerchantKey) DO UPDATE SET Category = excluded.Category, UpdatedAt = datetime('now')`
     ).bind(key, category));
+  }
+  await env.DB.batch(statements);
+  return json({ ok: true });
+}
+
+async function ListCategories(env) {
+  const { results } = await env.DB.prepare(
+    "SELECT Name, MonthlyBudget, Active, PlaidMatch FROM Categories ORDER BY SortOrder, Name"
+  ).all();
+  return json(results);
+}
+
+// Creates or updates a category; renames carry existing expenses and learned rules along.
+async function SaveCategory(request, env) {
+  const { originalName, name, monthlyBudget, active, plaidMatch, applyToImported } = await readJson(request);
+  const cleanName = typeof name === "string" ? name.trim() : "";
+  const budget = Number(monthlyBudget);
+  if (!cleanName || cleanName.length > 40 || !Number.isFinite(budget) || budget < 0 || budget > 1000000) {
+    return json({ error: "Enter a name (up to 40 characters) and an allowance of $0 or more." }, 400);
+  }
+  if (plaidMatch !== undefined && (typeof plaidMatch !== "string" || !/^[A-Z_,]{0,1000}$/.test(plaidMatch))) {
+    return json({ error: "Invalid request" }, 400);
+  }
+  const activeFlag = active === false ? 0 : 1;
+  const clash = await env.DB.prepare("SELECT Name FROM Categories WHERE lower(Name) = lower(?)").bind(cleanName).first();
+  const statements = [];
+
+  if (typeof originalName === "string") {
+    const current = await env.DB.prepare("SELECT Name FROM Categories WHERE Name = ?").bind(originalName).first();
+    if (!current) return json({ error: "Not found" }, 404);
+    if (clash && clash.Name !== originalName) return json({ error: "A category with that name already exists." }, 409);
+    statements.push(env.DB.prepare("UPDATE Categories SET Name = ?, MonthlyBudget = ?, Active = ? WHERE Name = ?")
+      .bind(cleanName, budget, activeFlag, originalName));
+    if (cleanName !== originalName) {
+      statements.push(
+        env.DB.prepare("UPDATE Expenses SET Category = ? WHERE Category = ?").bind(cleanName, originalName),
+        env.DB.prepare("UPDATE CategoryRules SET Category = ? WHERE Category = ?").bind(cleanName, originalName)
+      );
+    }
+  } else {
+    if (clash) return json({ error: "A category with that name already exists." }, 409);
+    statements.push(env.DB.prepare(
+      `INSERT INTO Categories (Name, MonthlyBudget, SortOrder, Active, PlaidMatch)
+       VALUES (?, ?, (SELECT COALESCE(MAX(SortOrder), 0) + 1 FROM Categories), ?, ?)`
+    ).bind(cleanName, budget, activeFlag, plaidMatch || null));
+    if (applyToImported && plaidMatch) {
+      for (const prefix of plaidMatch.split(",").filter(Boolean)) {
+        statements.push(env.DB.prepare(
+          `UPDATE Expenses SET Category = ?, NeedsReview = 0
+           WHERE Source = 'plaid' AND NeedsReview = 1 AND DuplicateOf IS NULL AND PlaidCategory LIKE ?`
+        ).bind(cleanName, `${prefix}%`));
+      }
+    }
   }
   await env.DB.batch(statements);
   return json({ ok: true });

@@ -2,9 +2,7 @@ import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { createExpense } from './expenseData'
 
-const categories = ['Car Maintenance', 'Clothes', 'Costco', 'Eating Out', 'Entertainment', 'Gas', 'Gifts', 'Giving', 'Groceries', 'Healthcare', 'Miscellaneous Needs', 'Non-Essentials (Wants)']
-
-export default function Expense({ expenseData, setExpenseData }) {
+export default function Expense({ expenseData, setExpenseData, categories }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -51,4 +49,5 @@ Expense.propTypes = {
     Year: PropTypes.number.isRequired,
   }).isRequired,
   setExpenseData: PropTypes.func.isRequired,
+  categories: PropTypes.arrayOf(PropTypes.string).isRequired,
 }

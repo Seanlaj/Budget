@@ -32,6 +32,29 @@ export function reviewExpense(id, category) {
   return postJson('/api/expense/review', { id, category }, 'The category could not be saved.')
 }
 
+export async function getCategories() {
+  const response = await fetch(`${API_URL}/api/categories`)
+  if (!response.ok) throw new Error('Categories could not be loaded.')
+  return response.json()
+}
+
+export async function saveCategory(category) {
+  const response = await fetch(`${API_URL}/api/admin/category`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(category),
+  })
+  const body = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(body.error || 'The category could not be saved.')
+  return body
+}
+
+export async function getSuggestions() {
+  const response = await fetch(`${API_URL}/api/admin/suggestions`)
+  if (!response.ok) throw new Error('Suggestions could not be loaded. Please try again.')
+  return response.json()
+}
+
 export async function getConnections() {
   const response = await fetch(`${API_URL}/api/plaid/items`)
   if (!response.ok) throw new Error('Bank connections could not be loaded.')

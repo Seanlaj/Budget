@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { deleteExpense, reviewExpense } from './expenseData'
-import { BUDGETS } from './budgetConfig'
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-const categories = Object.keys(BUDGETS)
 
-export default function Table({ expenseData, setExpenseData, loading }) {
+export default function Table({ expenseData, setExpenseData, loading, categories }) {
   const [deletingId, setDeletingId] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [savingId, setSavingId] = useState(null)
@@ -41,7 +39,7 @@ export default function Table({ expenseData, setExpenseData, loading }) {
           : row.NeedsReview ? <span className="review-note">Needs review</span> : null}
         <div className="review-controls">
           <select aria-label={`Category for ${row.Store}`} value={drafts[row.Id] ?? row.Category} onChange={e => setDrafts({ ...drafts, [row.Id]: e.target.value })}>
-            {categories.map(category => <option key={category}>{category}</option>)}
+            {(categories.includes(row.Category) ? categories : [row.Category, ...categories]).map(category => <option key={category}>{category}</option>)}
           </select>
           <button type="button" className="small-primary-button" onClick={() => handleReview(row)} disabled={savingId === row.Id}>
             {savingId === row.Id ? 'Saving...' : row.DuplicateOf ? 'Keep' : 'Save'}
@@ -109,4 +107,5 @@ Table.propTypes = {
   }).isRequired,
   setExpenseData: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
+  categories: PropTypes.arrayOf(PropTypes.string).isRequired,
 }
