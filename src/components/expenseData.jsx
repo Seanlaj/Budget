@@ -42,6 +42,16 @@ export async function splitExpense(id, parts, remember) {
   if (!response.ok) throw new Error(body.error || 'The split could not be saved.')
 }
 
+export async function findDuplicates(month, year) {
+  const response = await fetch(`${API_URL}/api/duplicates?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`)
+  if (!response.ok) throw new Error('Duplicates could not be checked.')
+  return response.json()
+}
+
+export function resolveDuplicates(ids, keep) {
+  return postJson('/api/duplicates/resolve', { ids, keep }, 'The duplicates could not be resolved.')
+}
+
 export async function getCategories() {
   const response = await fetch(`${API_URL}/api/categories`)
   if (!response.ok) throw new Error('Categories could not be loaded.')

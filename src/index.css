@@ -185,6 +185,15 @@ input:focus, select:focus { border-color: #1f7a4d; background: #fff; outline: no
 .table-toolbar input { flex: 1 1 240px; height: 38px; }
 .table-toolbar label { display: flex; align-items: center; gap: 8px; color: #6c776f; font-size: .82rem; white-space: nowrap; }
 .table-toolbar select { width: auto; height: 38px; }
+.duplicate-finder { display: grid; gap: 12px; padding: 16px 28px; border-bottom: 1px solid #e6eae6; background: #fbfaf5; }
+.duplicate-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.duplicate-header p { margin: 0; color: #6c776f; font-size: .84rem; }
+.duplicate-finder .form-note, .duplicate-finder .form-error { margin: 0; padding: 0; }
+.duplicate-group { display: grid; gap: 8px; border: 1px solid #e6e1cf; border-radius: 6px; background: #fff; padding: 12px 14px; }
+.duplicate-title { margin: 0; color: #202a23; font-weight: 650; }
+.duplicate-group ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.duplicate-group .check-label { align-items: flex-start; }
+.duplicate-group .check-label input { flex: 0 0 auto; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 15px 18px; border-bottom: 1px solid #edf0ed; text-align: left; vertical-align: middle; }
@@ -298,6 +307,7 @@ tr.split-row, tr.split-row:hover { background: #f6f9fd; }
   .form-grid .full-width { grid-column: auto; }
   .transactions-panel .panel-heading { padding: 20px 18px; }
   .table-toolbar { padding: 12px 18px; }
+  .duplicate-finder { padding: 14px 18px; }
   .table-toolbar label, .table-toolbar select { flex: 1 1 auto; }
   .table-wrap, table, tbody, tr, td { width: 100%; max-width: 100%; }
   table, tbody, tr, td { display: block; }

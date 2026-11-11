@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react'
 import PropTypes from 'prop-types'
 import { deleteExpense, reviewExpense } from './expenseData'
 import SplitEditor from './SplitEditor'
+import DuplicateFinder from './DuplicateFinder'
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
@@ -31,6 +32,7 @@ export default function Table({ expenseData, setExpenseData, loading, categories
   const [splitting, setSplitting] = useState(null)
   const [sort, setSort] = useState('newest')
   const [search, setSearch] = useState('')
+  const [showDuplicates, setShowDuplicates] = useState(false)
   const reviewCount = expenseData.Expenses.filter(row => row.NeedsReview).length
   const isSplit = row => row.SplitOf || expenseData.Expenses.some(other => other.SplitOf === row.Id)
   const query = search.trim().toLowerCase()
@@ -123,7 +125,9 @@ export default function Table({ expenseData, setExpenseData, loading, categories
             <option value="amount">Amount (largest first)</option>
           </select>
         </label>
+        <button type="button" className="secondary-button" onClick={() => setShowDuplicates(true)} disabled={showDuplicates}>Find duplicates</button>
       </div>
+      {showDuplicates && <DuplicateFinder key={`${expenseData.Month}-${expenseData.Year}`} month={expenseData.Month} year={expenseData.Year} onClose={() => setShowDuplicates(false)} onChanged={() => setExpenseData(expenseData)} />}
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="table-wrap">
         <table>

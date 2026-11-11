@@ -34,6 +34,10 @@ export default {
         return await ReviewExpense(request, env);
       if (pathname === "/api/expense/split" && request.method === "POST")
         return await SplitExpense(request, env);
+      if (pathname === "/api/duplicates" && request.method === "GET")
+        return await FindDuplicates(searchParams, env);
+      if (pathname === "/api/duplicates/resolve" && request.method === "POST")
+        return await ResolveDuplicates(request, env);
       if (pathname === "/api/categories" && request.method === "GET")
         return await ListCategories(env);
       if (pathname === "/api/admin/category" && request.method === "POST")
@@ -178,6 +182,81 @@ async function SplitExpense(request, env) {
   }
   await env.DB.batch(statements);
   return json({ ok: true });
+}
+
+const DUPLICATE_WINDOW_DAYS = 3;
+
+function storedDateToDay(date) {
+  const [month, day, year] = String(date).split("/").map(Number);
+  const time = Date.UTC(year, month - 1, day);
+  return Number.isFinite(time) ? time / 86400000 : null;
+}
+
+// Groups entries with the same store, description and amount dated within a few days of each other.
+// Split payments are left out since their parts intentionally share a store and description.
+async function FindDuplicates(searchParams, env) {
+  const monthIndex = Number(searchParams.get("month"));
+  const year = Number(searchParams.get("year"));
+  if (!Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11 || !Number.isInteger(year) || year < 2000 || year > 2100) {
+    return json({ error: "Invalid month or year" }, 400);
+  }
+  const { results } = await env.DB.prepare(
+    `SELECT Id, Date, CAST(Amount AS REAL) AS Amount, Store, Items, Category, Source, DupChecked FROM Expenses
+     WHERE substr(Date, 1, 2) = ? AND substr(Date, -4, 4) = ?
+       AND SplitOf IS NULL AND Id NOT IN (SELECT SplitOf FROM Expenses WHERE SplitOf IS NOT NULL)`
+  ).bind(String(monthIndex + 1).padStart(2, "0"), String(year)).all();
+  const byKey = new Map();
+  for (const row of results) {
+    const day = storedDateToDay(row.Date);
+    if (day === null) continue;
+    const items = String(row.Items ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+    const key = `${merchantKey(row.Store)}|${items}|${Math.round(row.Amount * 100)}`;
+    if (!byKey.has(key)) byKey.set(key, []);
+    byKey.get(key).push({ ...row, day });
+  }
+
+  const groups = [];
+  for (const rows of byKey.values()) {
+    if (rows.length < 2) continue;
+    rows.sort((a, b) => a.day - b.day || a.Id - b.Id);
+    let cluster = [rows[0]];
+    for (const row of [...rows.slice(1), null]) {
+      if (row && row.day - cluster.at(-1).day <= DUPLICATE_WINDOW_DAYS) {
+        cluster.push(row);
+        continue;
+      }
+      if (cluster.length > 1 && cluster.some((r) => !r.DupChecked)) {
+        groups.push(cluster.map(({ day, DupChecked, ...rest }) => rest));
+      }
+      cluster = row ? [row] : [];
+    }
+  }
+  groups.sort((a, b) => storedDateToDay(b[0].Date) - storedDateToDay(a[0].Date));
+  return json(groups);
+}
+
+// Deletes the entries not kept; any kept entries are marked so they aren't flagged together again.
+async function ResolveDuplicates(request, env) {
+  const { ids, keep } = await readJson(request);
+  const validIds = (list) => Array.isArray(list) && list.length <= 50 && list.every((id) => Number.isInteger(id) && id > 0);
+  if (!validIds(ids) || !validIds(keep) || ids.length < 2 || keep.length < 1 || keep.some((id) => !ids.includes(id))) {
+    return json({ error: "Keep at least one entry." }, 400);
+  }
+  const remove = ids.filter((id) => !keep.includes(id));
+  const statements = [];
+  for (const id of remove) {
+    statements.push(
+      env.DB.prepare("UPDATE Expenses SET DuplicateOf = NULL WHERE DuplicateOf = ?").bind(id),
+      env.DB.prepare("DELETE FROM Expenses WHERE Id = ?1 OR SplitOf = ?1").bind(id)
+    );
+  }
+  if (keep.length > 1) {
+    statements.push(env.DB.prepare(
+      `UPDATE Expenses SET DupChecked = 1 WHERE Id IN (${keep.map(() => "?").join(",")})`
+    ).bind(...keep));
+  }
+  await env.DB.batch(statements);
+  return json({ ok: true, deleted: remove.length });
 }
 
 async function ListCategories(env) {
