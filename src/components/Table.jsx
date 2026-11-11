@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { deleteExpense, reviewExpense } from './expenseData'
 import SplitEditor from './SplitEditor'
 import DuplicateFinder from './DuplicateFinder'
+import ReviewModal from './ReviewModal'
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
@@ -33,6 +34,7 @@ export default function Table({ expenseData, setExpenseData, loading, categories
   const [sort, setSort] = useState('newest')
   const [search, setSearch] = useState('')
   const [showDuplicates, setShowDuplicates] = useState(false)
+  const [showReview, setShowReview] = useState(false)
   const reviewCount = expenseData.Expenses.filter(row => row.NeedsReview).length
   const isSplit = row => row.SplitOf || expenseData.Expenses.some(other => other.SplitOf === row.Id)
   const query = search.trim().toLowerCase()
@@ -111,8 +113,15 @@ export default function Table({ expenseData, setExpenseData, loading, categories
     <section className="panel transactions-panel">
       <div className="panel-heading">
         <div><p className="eyebrow">Activity</p><h2>Recent expenses</h2></div>
-        <span className="item-count">{reviewCount > 0 && <strong className="review-count">{reviewCount} to review · </strong>}{query ? `${rows.length} of ${expenseData.Expenses.length}` : expenseData.Expenses.length} transactions</span>
+        <div className="panel-heading-actions">
+          {reviewCount > 0 && <button type="button" className="review-button" onClick={() => setShowReview(true)}>Review <span className="review-badge">{reviewCount}</span></button>}
+          <span className="item-count">{query ? `${rows.length} of ${expenseData.Expenses.length}` : expenseData.Expenses.length} transactions</span>
+        </div>
       </div>
+      {showReview && (
+        <ReviewModal rows={expenseData.Expenses.filter(row => row.NeedsReview).sort(SORTS.newest)} categories={categories}
+          onChanged={() => setExpenseData(expenseData)} onClose={() => setShowReview(false)} />
+      )}
       <div className="table-toolbar">
         <input type="search" placeholder="Search store or description" aria-label="Search transactions" value={search} onChange={e => setSearch(e.target.value)} />
         <label>

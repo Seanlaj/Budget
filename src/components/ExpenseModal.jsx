@@ -1,20 +1,12 @@
-import { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import Expense from './Expense'
+import Modal from './Modal'
 
 export default function ExpenseModal({ onClose, ...expenseProps }) {
-  const dialogRef = useRef(null)
-
-  useEffect(() => {
-    if (!dialogRef.current.open) dialogRef.current.showModal()
-  }, [])
-
   return (
-    <dialog ref={dialogRef} className="expense-modal" aria-label="Add an expense" onClose={onClose}
-      onClick={e => { if (e.target === dialogRef.current) onClose() }}>
-      <button type="button" className="modal-close" onClick={onClose} aria-label="Close">&times;</button>
+    <Modal label="Add an expense" onClose={onClose}>
       <Expense {...expenseProps} onSaved={onClose} />
-    </dialog>
+    </Modal>
   )
 }
 
