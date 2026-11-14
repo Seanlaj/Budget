@@ -46,14 +46,10 @@ export default function Accounts({ onSynced }) {
     if (window.location.search) window.history.replaceState(null, '', '/')
   }, [])
 
-  const runSync = useCallback(async (refreshBanks = false) => {
-    const { refreshed, results } = await syncNow(refreshBanks)
+  const runSync = useCallback(async () => {
+    const results = await syncNow()
     const added = results.reduce((sum, r) => sum + (r.added || 0), 0)
-    setMessage(added
-      ? `${added} new transaction${added === 1 ? '' : 's'} imported.`
-      : refreshed
-        ? 'No new transactions yet. Banks were asked for their latest activity; check again in a few minutes.'
-        : 'No new transactions yet. Banks report new activity a few times a day.')
+    setMessage(added ? `${added} new transaction${added === 1 ? '' : 's'} imported.` : 'No new transactions yet. New connections can take a few minutes.')
     await refresh()
     await onSynced()
   }, [refresh, onSynced])
@@ -100,7 +96,7 @@ export default function Accounts({ onSynced }) {
     setBusy('sync')
     setError('')
     try {
-      await runSync(true)
+      await runSync()
     } catch (err) {
       setError(err.message)
     } finally {

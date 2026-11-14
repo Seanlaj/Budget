@@ -305,22 +305,6 @@ export async function syncItem(env, item) {
   return { itemId: item.ItemId, status: "ok", added, removed: updates.removed.length };
 }
 
-// Asks Plaid to pull new transactions from each bank now instead of waiting for its own schedule.
-// /transactions/refresh is a paid Plaid add-on; until it's enabled the calls fail and nothing is charged.
-export async function refreshAll(env) {
-  const { results: items } = await env.DB.prepare("SELECT ItemId, AccessToken FROM PlaidItems WHERE Status = 'ok'").all();
-  const outcomes = await Promise.all(items.map(async (item) => {
-    try {
-      await plaid(env, "/transactions/refresh", { access_token: await decryptToken(env, item.ItemId, item.AccessToken) });
-      return true;
-    } catch (err) {
-      console.error("refresh failed", item.ItemId, err.code || err.message);
-      return false;
-    }
-  }));
-  return outcomes.filter(Boolean).length;
-}
-
 export async function syncAll(env) {
   const { results: items } = await env.DB.prepare("SELECT * FROM PlaidItems").all();
   const outcomes = [];

@@ -90,8 +90,8 @@ export function exchangePublicToken(publicToken, institutionName) {
   return postJson('/api/plaid/exchange', { publicToken, institutionName }, 'The bank connection could not be saved.')
 }
 
-export function syncNow(refreshBanks = false) {
-  return postJson('/api/plaid/sync', { refresh: refreshBanks }, 'Sync failed. Please try again.')
+export function syncNow() {
+  return postJson('/api/plaid/sync', {}, 'Sync failed. Please try again.')
 }
 
 export function removeConnection(itemId) {
