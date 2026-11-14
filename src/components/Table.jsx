@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import PropTypes from 'prop-types'
-import { deleteExpense, reviewExpense } from './expenseData'
+import { deleteExpense, reviewExpense, syncNow } from './expenseData'
 import SplitEditor from './SplitEditor'
 import DuplicateFinder from './DuplicateFinder'
 import ReviewModal from './ReviewModal'
@@ -35,6 +35,8 @@ export default function Table({ expenseData, setExpenseData, loading, categories
   const [search, setSearch] = useState('')
   const [showDuplicates, setShowDuplicates] = useState(false)
   const [showReview, setShowReview] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [notice, setNotice] = useState('')
   const reviewCount = expenseData.Expenses.filter(row => row.NeedsReview).length
   const isSplit = row => row.SplitOf || expenseData.Expenses.some(other => other.SplitOf === row.Id)
   const query = search.trim().toLowerCase()
@@ -42,6 +44,24 @@ export default function Table({ expenseData, setExpenseData, loading, categories
     .filter(row => row.Date !== 'Invalid Date')
     .filter(row => !query || `${row.Store ?? ''} ${row.Items ?? ''}`.toLowerCase().includes(query))
     .sort((a, b) => SORTS[sort](a, b) || bySplitGroup(a, b))
+
+  async function handleRefresh() {
+    setRefreshing(true)
+    setError('')
+    setNotice('')
+    try {
+      const results = await syncNow()
+      const added = results.reduce((sum, r) => sum + (r.added || 0), 0)
+      setNotice(added
+        ? `${added} new transaction${added === 1 ? '' : 's'} imported.`
+        : 'Up to date. New purchases can take several hours to arrive from the bank.')
+      await setExpenseData(expenseData)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   function renderSplitEditor(row) {
     if (splitting?.anchorId !== row.Id) return null
@@ -134,10 +154,14 @@ export default function Table({ expenseData, setExpenseData, loading, categories
             <option value="amount">Amount (largest first)</option>
           </select>
         </label>
+        <button type="button" className="secondary-button" onClick={handleRefresh} disabled={refreshing} title="Get the latest bank and credit card transactions">
+          {refreshing ? 'Refreshing...' : '↻ Refresh'}
+        </button>
         <button type="button" className="secondary-button" onClick={() => setShowDuplicates(true)} disabled={showDuplicates}>Find duplicates</button>
       </div>
       {showDuplicates && <DuplicateFinder key={`${expenseData.Month}-${expenseData.Year}`} month={expenseData.Month} year={expenseData.Year} onClose={() => setShowDuplicates(false)} onChanged={() => setExpenseData(expenseData)} />}
       {error && <p className="form-error" role="alert">{error}</p>}
+      {notice && <p className="form-note table-notice" role="status">{notice}</p>}
       <div className="table-wrap">
         <table>
           <thead><tr><th>Date</th><th>Store</th><th>Items</th><th>Category</th><th className="amount-cell">Amount</th><th><span className="visually-hidden">Actions</span></th></tr></thead>

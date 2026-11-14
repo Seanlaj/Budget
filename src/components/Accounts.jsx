@@ -133,6 +133,13 @@ export default function Accounts({ onSynced }) {
       </div>
       {error && <p className="form-error" role="alert">{error}</p>}
       {message && <p className="form-note" role="status">{message}</p>}
+      <p className="sync-timing-note">
+        <strong>Why isn&apos;t a purchase showing up yet?</strong> Banks don&apos;t send purchases to this app instantly.
+        Plaid, the secure service that connects your banks, collects new activity from each bank on its own schedule,
+        usually 1&ndash;4 times a day. This app checks Plaid every hour, and <b>Sync now</b> or <b>Refresh</b> only picks up
+        what Plaid already has. A purchase can take several hours, sometimes a day or two, to appear. Some cards only
+        report it once it posts. &ldquo;Bank data as of&rdquo; below shows when Plaid last heard from each bank.
+      </p>
       {connections.length === 0 ? (
         <p className="empty-note">No accounts connected yet. Purchases sync automatically every hour once connected.</p>
       ) : (
