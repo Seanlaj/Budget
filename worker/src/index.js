@@ -34,6 +34,8 @@ export default {
         return await ReviewExpense(request, env);
       if (pathname === "/api/expense/split" && request.method === "POST")
         return await SplitExpense(request, env);
+      if (pathname === "/api/expense/items" && request.method === "POST")
+        return await UpdateItems(request, env);
       if (pathname === "/api/duplicates" && request.method === "GET")
         return await FindDuplicates(searchParams, env);
       if (pathname === "/api/duplicates/resolve" && request.method === "POST")
@@ -107,6 +109,13 @@ async function SyncNow(request, env) {
   const { refresh } = await readJson(request);
   const refreshed = refresh === true ? await refreshAll(env) : 0;
   return json({ refreshed, results: await syncAll(env) });
+}
+
+async function UpdateItems(request, env) {
+  const { id, items } = await readJson(request);
+  if (!Number.isInteger(id) || id <= 0 || typeof items !== "string" || items.length > 200) return json({ error: "Invalid request" }, 400);
+  const { meta } = await env.DB.prepare("UPDATE Expenses SET Items = ? WHERE Id = ?").bind(items.trim(), id).run();
+  return meta.changes ? json({ ok: true }) : json({ error: "Not found" }, 404);
 }
 
 // Saving a category clears review flags and, for bank imports, teaches the merchant rule.

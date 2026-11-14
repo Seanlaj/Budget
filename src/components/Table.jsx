@@ -1,6 +1,6 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
-import { deleteExpense, reviewExpense, syncNow } from './expenseData'
+import { deleteExpense, reviewExpense, syncNow, updateItems } from './expenseData'
 import SplitEditor from './SplitEditor'
 import DuplicateFinder from './DuplicateFinder'
 import ReviewModal from './ReviewModal'
@@ -37,6 +37,8 @@ export default function Table({ expenseData, setExpenseData, loading, categories
   const [showReview, setShowReview] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [notice, setNotice] = useState('')
+  const [itemsDraft, setItemsDraft] = useState(null)
+  const itemsCancelled = useRef(false)
   const reviewCount = expenseData.Expenses.filter(row => row.NeedsReview).length
   const isSplit = row => row.SplitOf || expenseData.Expenses.some(other => other.SplitOf === row.Id)
   const query = search.trim().toLowerCase()
@@ -117,6 +119,44 @@ export default function Table({ expenseData, setExpenseData, loading, categories
     )
   }
 
+  async function saveItems(row) {
+    const draft = itemsDraft
+    setItemsDraft(null)
+    if (itemsCancelled.current || !draft || draft.value.trim() === (row.Items ?? '').trim()) {
+      itemsCancelled.current = false
+      return
+    }
+    setSavingId(row.Id)
+    setError('')
+    try {
+      await updateItems(row.Id, draft.value)
+      await setExpenseData(expenseData)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  function renderItems(row) {
+    if (itemsDraft?.id === row.Id) {
+      return (
+        <input className="items-input" aria-label={`Description for ${row.Store}`} value={itemsDraft.value} maxLength={200} autoFocus
+          onChange={e => setItemsDraft({ id: row.Id, value: e.target.value })}
+          onBlur={() => saveItems(row)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+            if (e.key === 'Escape') { itemsCancelled.current = true; e.currentTarget.blur() }
+          }} />
+      )
+    }
+    return (
+      <button type="button" className="items-edit" onClick={() => setItemsDraft({ id: row.Id, value: row.Items ?? '' })} disabled={savingId === row.Id} title="Edit description">
+        {row.Items || <span className="items-placeholder">Add a note</span>}
+      </button>
+    )
+  }
+
   async function handleDelete(id) {
     if (!window.confirm('Delete this expense? This cannot be undone.')) return
     setDeletingId(id)
@@ -179,7 +219,7 @@ export default function Table({ expenseData, setExpenseData, loading, categories
               <tr className={row.NeedsReview ? 'needs-review' : undefined}>
                 <td data-label="Date">{row.Date}</td>
                 <td data-label="Store" className="primary-cell">{row.Store}{row.Source === 'plaid' && <span className="source-tag">Bank</span>}{row.Pending ? <span className="source-tag pending-tag" title="Not yet posted by the bank; the amount may still change">Pending</span> : null}{isSplit(row) && <span className="source-tag">Split</span>}</td>
-                <td data-label="Items">{row.Items}</td>
+                <td data-label="Items">{renderItems(row)}</td>
                 <td data-label="Category">{renderCategory(row)}</td>
                 <td data-label="Amount" className="amount-cell">{currency.format(Number(row.Amount || 0))}</td>
                 <td className="action-cell">

@@ -32,6 +32,10 @@ export function reviewExpense(id, category) {
   return postJson('/api/expense/review', { id, category }, 'The category could not be saved.')
 }
 
+export function updateItems(id, items) {
+  return postJson('/api/expense/items', { id, items }, 'The description could not be saved.')
+}
+
 export async function splitExpense(id, parts, remember) {
   const response = await fetch(`${API_URL}/api/expense/split`, {
     method: 'POST',
