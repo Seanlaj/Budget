@@ -50,11 +50,13 @@ export default function Table({ expenseData, setExpenseData, loading, categories
     setError('')
     setNotice('')
     try {
-      const results = await syncNow()
+      const { refreshed, results } = await syncNow(true)
       const added = results.reduce((sum, r) => sum + (r.added || 0), 0)
       setNotice(added
         ? `${added} new transaction${added === 1 ? '' : 's'} imported.`
-        : 'Up to date. New purchases can take several hours to arrive from the bank.')
+        : refreshed
+          ? 'No new transactions yet. Banks were asked for their latest activity; try again in a few minutes.'
+          : 'Up to date. New purchases can take several hours to arrive from the bank.')
       await setExpenseData(expenseData)
     } catch (err) {
       setError(err.message)
