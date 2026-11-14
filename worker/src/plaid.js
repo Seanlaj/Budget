@@ -173,7 +173,10 @@ export async function syncItem(env, item) {
   }
 
   const statements = [];
+  // A posted transaction replaces its pending version; the pending row is converted in place below.
+  const replacedPending = new Set(updates.added.map((t) => t.pending_transaction_id).filter(Boolean));
   for (const { transaction_id } of updates.removed) {
+    if (replacedPending.has(transaction_id)) continue;
     statements.push(
       env.DB.prepare("DELETE FROM Expenses WHERE SplitOf IN (SELECT Id FROM Expenses WHERE PlaidTransactionId = ?)").bind(transaction_id),
       env.DB.prepare("DELETE FROM Expenses WHERE PlaidTransactionId = ? AND Source = 'plaid'").bind(transaction_id)
@@ -182,14 +185,14 @@ export async function syncItem(env, item) {
   for (const txn of updates.modified) {
     if (shouldSkip(txn)) continue;
     statements.push(env.DB.prepare(
-      `UPDATE Expenses SET Amount = ?, Date = ? WHERE PlaidTransactionId = ?
+      `UPDATE Expenses SET Amount = ?, Date = ?, Pending = ? WHERE PlaidTransactionId = ?
        AND Id NOT IN (SELECT SplitOf FROM Expenses WHERE SplitOf IS NOT NULL)`
-    ).bind(Number(txn.amount.toFixed(2)), toStoredDate(txn.authorized_date || txn.date), txn.transaction_id));
+    ).bind(Number(txn.amount.toFixed(2)), toStoredDate(txn.authorized_date || txn.date), txn.pending ? 1 : 0, txn.transaction_id));
   }
 
   let added = 0;
   if (updates.added.length) {
-    const [{ results: accountRows }, { results: ruleRows }, { results: historyRows }, { results: manualRows }, { results: categoryRows }, { results: splitRows }] = await env.DB.batch([
+    const [{ results: accountRows }, { results: ruleRows }, { results: historyRows }, { results: manualRows }, { results: categoryRows }, { results: splitRows }, { results: pendingRows }] = await env.DB.batch([
       env.DB.prepare("SELECT AccountId, Name, Mask FROM PlaidAccounts WHERE ItemId = ?").bind(item.ItemId),
       env.DB.prepare("SELECT MerchantKey, Category FROM CategoryRules"),
       env.DB.prepare(
@@ -201,8 +204,13 @@ export async function syncItem(env, item) {
            AND Id NOT IN (SELECT DuplicateOf FROM Expenses WHERE DuplicateOf IS NOT NULL)`
       ).bind(item.ImportFrom.slice(0, 4)),
       env.DB.prepare("SELECT Name, Active, PlaidMatch FROM Categories"),
-      env.DB.prepare("SELECT MerchantKey, Parts FROM SplitRules")
+      env.DB.prepare("SELECT MerchantKey, Parts FROM SplitRules"),
+      env.DB.prepare(
+        `SELECT e.Id, e.PlaidTransactionId, EXISTS (SELECT 1 FROM Expenses c WHERE c.SplitOf = e.Id) AS HasParts
+         FROM Expenses e WHERE e.PlaidTransactionId IN (SELECT value FROM json_each(?))`
+      ).bind(JSON.stringify([...replacedPending]))
     ]);
+    const pendingRowsById = new Map(pendingRows.map((r) => [r.PlaidTransactionId, r]));
     const splitRules = new Map(splitRows.map((r) => [r.MerchantKey, JSON.parse(r.Parts)]));
     const accounts = new Map(accountRows.map((a) => [a.AccountId, a]));
     const activeNames = new Set(categoryRows.filter((c) => c.Active).map((c) => c.Name));
@@ -217,10 +225,34 @@ export async function syncItem(env, item) {
     for (const txn of updates.added) {
       const account = accounts.get(txn.account_id);
       const isoDate = txn.authorized_date || txn.date;
-      if (!account || shouldSkip(txn) || isoDate < item.ImportFrom) continue;
+      if (!account || shouldSkip(txn) || isoDate < item.ImportFrom) {
+        if (txn.pending_transaction_id) {
+          statements.push(
+            env.DB.prepare("DELETE FROM Expenses WHERE SplitOf IN (SELECT Id FROM Expenses WHERE PlaidTransactionId = ?)").bind(txn.pending_transaction_id),
+            env.DB.prepare("DELETE FROM Expenses WHERE PlaidTransactionId = ? AND Source = 'plaid'").bind(txn.pending_transaction_id)
+          );
+        }
+        continue;
+      }
 
       const amount = Number(txn.amount.toFixed(2));
       const store = txn.merchant_name || txn.name;
+
+      // Keeps the category, review state and split parts already set on the pending version.
+      const pendingRow = txn.pending_transaction_id && pendingRowsById.get(txn.pending_transaction_id);
+      if (pendingRow) {
+        statements.push(
+          env.DB.prepare(
+            `UPDATE Expenses SET PlaidTransactionId = ?, Date = ?, Pending = ?, Store = ?,
+               Amount = CASE WHEN ? THEN Amount ELSE ? END WHERE Id = ?`
+          ).bind(txn.transaction_id, toStoredDate(isoDate), txn.pending ? 1 : 0, store, pendingRow.HasParts, amount, pendingRow.Id),
+          env.DB.prepare(
+            "UPDATE Expenses SET PlaidTransactionId = ?1 || substr(PlaidTransactionId, ?2), Pending = ?3, Date = ?4 WHERE SplitOf = ?5"
+          ).bind(txn.transaction_id, txn.pending_transaction_id.length + 1, txn.pending ? 1 : 0, toStoredDate(isoDate), pendingRow.Id)
+        );
+        continue;
+      }
+
       let [category, needsReview] = categorize(txn, context);
       const txnTime = Date.parse(isoDate);
       const duplicate = manualRows.find((row) =>
@@ -237,19 +269,19 @@ export async function syncItem(env, item) {
       const items = `${account.Name}${account.Mask ? ` ••${account.Mask}` : ""}`;
       const plaidCategory = txn.personal_finance_category?.detailed ?? null;
       statements.push(env.DB.prepare(
-        `INSERT OR IGNORE INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, DuplicateOf, PlaidCategory)
-         VALUES (?, ?, ?, ?, ?, 'plaid', ?, ?, ?, ?, ?)`
+        `INSERT OR IGNORE INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, DuplicateOf, PlaidCategory, Pending)
+         VALUES (?, ?, ?, ?, ?, 'plaid', ?, ?, ?, ?, ?, ?)`
       ).bind(
         toStoredDate(isoDate), parts ? parts[0].amount : amount, store, items,
-        category, txn.transaction_id, txn.account_id, needsReview ? 1 : 0, duplicate?.Id ?? null, plaidCategory
+        category, txn.transaction_id, txn.account_id, needsReview ? 1 : 0, duplicate?.Id ?? null, plaidCategory, txn.pending ? 1 : 0
       ));
       for (const [i, part] of (parts?.slice(1) ?? []).entries()) {
         statements.push(env.DB.prepare(
-          `INSERT OR IGNORE INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, PlaidCategory, SplitOf)
-           VALUES (?, ?, ?, ?, ?, 'plaid', ?, ?, 0, ?, (SELECT Id FROM Expenses WHERE PlaidTransactionId = ?))`
+          `INSERT OR IGNORE INTO Expenses (Date, Amount, Store, Items, Category, Source, PlaidTransactionId, AccountId, NeedsReview, PlaidCategory, SplitOf, Pending)
+           VALUES (?, ?, ?, ?, ?, 'plaid', ?, ?, 0, ?, (SELECT Id FROM Expenses WHERE PlaidTransactionId = ?), ?)`
         ).bind(
           toStoredDate(isoDate), part.amount, store, items, part.category, `${txn.transaction_id}#${i + 1}`,
-          txn.account_id, plaidCategory, txn.transaction_id
+          txn.account_id, plaidCategory, txn.transaction_id, txn.pending ? 1 : 0
         ));
       }
       added++;

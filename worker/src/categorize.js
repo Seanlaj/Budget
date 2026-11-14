@@ -21,7 +21,7 @@ export function merchantKey(name) {
 }
 
 export function shouldSkip(txn) {
-  if (txn.pending || !(txn.amount > 0)) return true;
+  if (!(txn.amount > 0)) return true;
   const detailed = txn.personal_finance_category?.detailed || "";
   return SKIP_DETAILED.has(detailed) || detailed.startsWith("TRANSFER_IN") || detailed.startsWith("INCOME");
 }

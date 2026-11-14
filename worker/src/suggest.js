@@ -57,7 +57,7 @@ export async function buildSuggestions(env) {
           const detailed = txn.personal_finance_category?.detailed;
           if (!detailed) continue;
           if (needsBackfill.has(txn.transaction_id)) backfill.push([detailed, txn.transaction_id]);
-          if (shouldSkip(txn)) continue;
+          if (txn.pending || shouldSkip(txn)) continue;
           const date = txn.authorized_date || txn.date;
           if (date < earliest) earliest = date;
           const group = groups.find((g) => g.match.some((prefix) => detailed.startsWith(prefix)));

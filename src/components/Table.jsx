@@ -152,7 +152,7 @@ export default function Table({ expenseData, setExpenseData, loading, categories
               <Fragment key={row.Id}>
               <tr className={row.NeedsReview ? 'needs-review' : undefined}>
                 <td data-label="Date">{row.Date}</td>
-                <td data-label="Store" className="primary-cell">{row.Store}{row.Source === 'plaid' && <span className="source-tag">Bank</span>}{isSplit(row) && <span className="source-tag">Split</span>}</td>
+                <td data-label="Store" className="primary-cell">{row.Store}{row.Source === 'plaid' && <span className="source-tag">Bank</span>}{row.Pending ? <span className="source-tag pending-tag" title="Not yet posted by the bank; the amount may still change">Pending</span> : null}{isSplit(row) && <span className="source-tag">Split</span>}</td>
                 <td data-label="Items">{row.Items}</td>
                 <td data-label="Category">{renderCategory(row)}</td>
                 <td data-label="Amount" className="amount-cell">{currency.format(Number(row.Amount || 0))}</td>

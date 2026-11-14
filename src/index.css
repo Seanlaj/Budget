@@ -300,6 +300,8 @@ tr.new-row td { background: #fafbfa; }
 .status-warning { color: #a3621b; font-size: .8rem; font-weight: 650; }
 .source-tag { display: inline-block; margin-left: 8px; border-radius: 4px; background: #e8f0fb; color: #2f5d94; padding: 2px 6px; font-size: .68rem; font-weight: 700; vertical-align: middle; }
 .category-edit { border: 0; cursor: pointer; }
+.source-tag.pending-tag { background: #fff3dc; color: #8a5414; }
+[data-theme="dark"] .source-tag.pending-tag { background: #3a2f1b; color: #f0c27e; }
 .category-edit:hover { background: #dfeae2; }
 tr.needs-review { background: #fffaf0; }
 .review-count { color: #a3621b; }

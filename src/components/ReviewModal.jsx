@@ -45,6 +45,7 @@ export default function ReviewModal({ rows, categories, onChanged, onClose }) {
                   </div>
                   <div className="review-meta">
                     {row.Date} &middot; {row.Items}
+                    {row.Pending ? <span> &middot; Pending</span> : null}
                     {row.DuplicateOf && <span className="review-note"> &middot; Possible duplicate of a manual entry</span>}
                   </div>
                   <div className="review-controls">
