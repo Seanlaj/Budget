@@ -1,6 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { isAlwaysReviewed, merchantKey } from "./categorize.js";
-import { createLinkToken, exchangePublicToken, listItems, PlaidError, removeItem, syncAll } from "./plaid.js";
+import { createLinkToken, exchangePublicToken, listItems, PlaidError, refreshAll, removeItem, syncAll } from "./plaid.js";
 import { buildSuggestions } from "./suggest.js";
 
 let jwks;
@@ -51,7 +51,7 @@ export default {
       if (pathname === "/api/plaid/exchange" && request.method === "POST")
         return await Exchange(request, env, ctx);
       if (pathname === "/api/plaid/sync" && request.method === "POST")
-        return json(await syncAll(env));
+        return await SyncNow(request, env);
       if (pathname === "/api/plaid/remove" && request.method === "POST")
         return await RemoveItem(request, env);
       return json({ error: "Not found" }, 404);
@@ -101,6 +101,12 @@ async function RemoveItem(request, env) {
   const { itemId } = await readJson(request);
   if (!ITEM_ID.test(itemId)) return json({ error: "Invalid item" }, 400);
   return (await removeItem(env, itemId)) ? json({ removed: true }) : json({ error: "Not found" }, 404);
+}
+
+async function SyncNow(request, env) {
+  const { refresh } = await readJson(request);
+  const refreshed = refresh === true ? await refreshAll(env) : 0;
+  return json({ refreshed, results: await syncAll(env) });
 }
 
 // Saving a category clears review flags and, for bank imports, teaches the merchant rule.
