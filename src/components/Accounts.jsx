@@ -13,6 +13,11 @@ function formatSynced(value) {
   return `Synced ${new Date(`${value.replace(' ', 'T')}Z`).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`
 }
 
+function formatBankUpdated(value) {
+  if (!value) return ''
+  return ` · Bank data as of ${new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`
+}
+
 export default function Accounts({ onSynced }) {
   const [connections, setConnections] = useState([])
   const [linkToken, setLinkToken] = useState(returningFromOAuth ? sessionStorage.getItem(TOKEN_KEY) : null)
@@ -139,7 +144,7 @@ export default function Accounts({ onSynced }) {
                 <span className="connection-accounts">{item.Accounts.map(a => `${a.Name}${a.Mask ? ` ••${a.Mask}` : ''}`).join(', ') || 'No accounts'}</span>
                 {item.Status === 'login_required'
                   ? <span className="status-warning">Bank login expired — reconnect to resume syncing</span>
-                  : <span className="connection-meta">{formatSynced(item.LastSyncedAt)}</span>}
+                  : <span className="connection-meta">{formatSynced(item.LastSyncedAt)}{formatBankUpdated(item.BankUpdatedAt)}</span>}
               </div>
               <div className="button-row">
                 {item.Status === 'login_required' && (

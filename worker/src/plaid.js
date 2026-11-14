@@ -127,10 +127,20 @@ export async function removeItem(env, itemId) {
 
 export async function listItems(env) {
   const [{ results: items }, { results: accounts }] = await env.DB.batch([
-    env.DB.prepare("SELECT ItemId, InstitutionName, Status, ImportFrom, LastSyncedAt FROM PlaidItems ORDER BY CreatedAt"),
+    env.DB.prepare("SELECT ItemId, InstitutionName, Status, ImportFrom, LastSyncedAt, AccessToken FROM PlaidItems ORDER BY CreatedAt"),
     env.DB.prepare("SELECT AccountId, ItemId, Name, Mask, Subtype FROM PlaidAccounts")
   ]);
-  return items.map((item) => ({ ...item, Accounts: accounts.filter((a) => a.ItemId === item.ItemId) }));
+  return Promise.all(items.map(async ({ AccessToken, ...item }) => {
+    // When Plaid itself last pulled new transactions from the bank, which bounds how fresh syncs can be.
+    let BankUpdatedAt = null;
+    try {
+      const info = await plaid(env, "/item/get", { access_token: await decryptToken(env, item.ItemId, AccessToken) });
+      BankUpdatedAt = info.status?.transactions?.last_successful_update ?? null;
+    } catch (err) {
+      console.error("item/get failed", item.ItemId, err.code || err.message);
+    }
+    return { ...item, BankUpdatedAt, Accounts: accounts.filter((a) => a.ItemId === item.ItemId) };
+  }));
 }
 
 async function fetchUpdates(accessToken, env, startCursor) {
