@@ -26,6 +26,11 @@ export function shouldSkip(txn) {
   return SKIP_DETAILED.has(detailed) || detailed.startsWith("TRANSFER_IN") || detailed.startsWith("INCOME");
 }
 
+// Paychecks, interest, tax refunds and similar deposits into checking or savings.
+export function isIncome(txn, accountType) {
+  return accountType === "depository" && txn.amount < 0 && (txn.personal_finance_category?.detailed || "").startsWith("INCOME");
+}
+
 // Rule parts have fixed amounts except the last, which takes the remainder.
 // Returns null when the payment is too small to cover the fixed parts.
 export function applySplitRule(ruleParts, amount, activeNames) {

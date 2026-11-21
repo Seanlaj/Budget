@@ -1,6 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { isAlwaysReviewed, merchantKey } from "./categorize.js";
-import { createLinkToken, exchangePublicToken, listItems, PlaidError, refreshAll, removeItem, syncAll } from "./plaid.js";
+import { backfillIncome, createLinkToken, exchangePublicToken, listItems, PlaidError, refreshAll, removeItem, syncAll } from "./plaid.js";
 import { buildSuggestions } from "./suggest.js";
 
 let jwks;
@@ -42,6 +42,16 @@ export default {
         return await ResolveDuplicates(request, env);
       if (pathname === "/api/categories" && request.method === "GET")
         return await ListCategories(env);
+      if (pathname === "/api/settings" && request.method === "GET")
+        return await GetSettings(env);
+      if (pathname === "/api/settings" && request.method === "POST")
+        return await SaveSettings(request, env);
+      if (pathname === "/api/cashflow" && request.method === "GET")
+        return await GetCashflow(searchParams, env);
+      if (pathname === "/api/income/create" && request.method === "POST")
+        return await CreateIncome(request, env);
+      if (pathname === "/api/income/delete" && request.method === "POST")
+        return await DeleteIncome(request, env);
       if (pathname === "/api/admin/category" && request.method === "POST")
         return await SaveCategory(request, env);
       if (pathname === "/api/admin/suggestions" && request.method === "GET")
@@ -285,6 +295,78 @@ async function ResolveDuplicates(request, env) {
   }
   await env.DB.batch(statements);
   return json({ ok: true, deleted: remove.length });
+}
+
+async function GetSettings(env) {
+  const row = await env.DB.prepare("SELECT Value FROM Settings WHERE Key = 'showIncome'").first();
+  return json({ showIncome: row?.Value === "1" });
+}
+
+async function SaveSettings(request, env) {
+  const { showIncome } = await readJson(request);
+  if (typeof showIncome !== "boolean") return json({ error: "Invalid request" }, 400);
+  await env.DB.prepare(
+    "INSERT INTO Settings (Key, Value) VALUES ('showIncome', ?) ON CONFLICT(Key) DO UPDATE SET Value = excluded.Value"
+  ).bind(showIncome ? "1" : "0").run();
+  if (showIncome) await backfillIncome(env);
+  return json({ showIncome });
+}
+
+const TREND_MONTHS = 6;
+
+// Income entries for the month plus income and spending totals for it and the months before it.
+async function GetCashflow(searchParams, env) {
+  const monthIndex = Number(searchParams.get("month"));
+  const year = Number(searchParams.get("year"));
+  if (!Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11 || !Number.isInteger(year) || year < 2000 || year > 2100) {
+    return json({ error: "Invalid month or year" }, 400);
+  }
+  const keys = [];
+  for (let i = TREND_MONTHS - 1; i >= 0; i--) {
+    const d = new Date(Date.UTC(year, monthIndex - i, 1));
+    keys.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`);
+  }
+  const keyList = JSON.stringify(keys);
+  const [{ results: income }, { results: incomeTotals }, { results: spentTotals }] = await env.DB.batch([
+    env.DB.prepare(
+      "SELECT Id, Date, CAST(Amount AS REAL) AS Amount, Source, Origin, Pending FROM Income WHERE Excluded = 0 AND substr(Date, 1, 7) = ? ORDER BY Date DESC, Id DESC"
+    ).bind(keys.at(-1)),
+    env.DB.prepare(
+      `SELECT substr(Date, 1, 7) AS Month, SUM(Amount) AS Total FROM Income
+       WHERE Excluded = 0 AND substr(Date, 1, 7) IN (SELECT value FROM json_each(?)) GROUP BY Month`
+    ).bind(keyList),
+    env.DB.prepare(
+      `SELECT substr(Date, -4, 4) || '-' || substr(Date, 1, 2) AS Month, SUM(CAST(Amount AS REAL)) AS Total FROM Expenses
+       WHERE substr(Date, -4, 4) || '-' || substr(Date, 1, 2) IN (SELECT value FROM json_each(?)) GROUP BY Month`
+    ).bind(keyList)
+  ]);
+  const incomeBy = new Map(incomeTotals.map((r) => [r.Month, r.Total]));
+  const spentBy = new Map(spentTotals.map((r) => [r.Month, r.Total]));
+  const months = keys.map((key) => ({ month: key, income: incomeBy.get(key) ?? 0, spent: spentBy.get(key) ?? 0 }));
+  return json({ income, months });
+}
+
+async function CreateIncome(request, env) {
+  const { date, amount, source } = await readJson(request);
+  const value = Number(amount);
+  const label = typeof source === "string" ? source.trim() : "";
+  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(value) || value <= 0 || value > 10000000 || !label || label.length > 100) {
+    return json({ error: "Enter a date, a source and an amount greater than $0." }, 400);
+  }
+  await env.DB.prepare("INSERT INTO Income (Date, Amount, Source, Origin) VALUES (?, ?, ?, 'manual')")
+    .bind(date, Math.round(value * 100) / 100, label).run();
+  return json({ ok: true });
+}
+
+// Bank deposits are hidden rather than deleted so the next sync doesn't bring them back.
+async function DeleteIncome(request, env) {
+  const { id } = await readJson(request);
+  if (!Number.isInteger(id) || id <= 0) return json({ error: "Invalid request" }, 400);
+  const [, { meta }] = await env.DB.batch([
+    env.DB.prepare("DELETE FROM Income WHERE Id = ? AND Origin = 'manual'").bind(id),
+    env.DB.prepare("UPDATE Income SET Excluded = 1 WHERE Id = ? AND Origin = 'plaid'").bind(id)
+  ]);
+  return json({ ok: true, hidden: meta.changes > 0 });
 }
 
 async function ListCategories(env) {

@@ -176,7 +176,42 @@ function Suggestions({ onAdded }) {
 
 Suggestions.propTypes = { onAdded: PropTypes.func.isRequired }
 
-export default function Admin({ categories, onCategoriesChanged, onSynced }) {
+function IncomeSetting({ enabled, onChange }) {
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function toggle(event) {
+    const value = event.target.checked
+    setSaving(true)
+    setError('')
+    try {
+      await onChange(value)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section className="panel admin-panel">
+      <div className="panel-heading">
+        <div><p className="eyebrow">Main page</p><h2>Income &amp; savings</h2></div>
+        <label className="switch">
+          <input type="checkbox" role="switch" checked={enabled} onChange={toggle} disabled={saving} />
+          <span className="switch-track" aria-hidden="true" />
+          <span>{saving ? (enabled ? 'Turning off...' : 'Loading income...') : enabled ? 'On' : 'Off'}</span>
+        </label>
+      </div>
+      <p className="empty-note">Shows each month&apos;s income next to your spending, how much you saved or overspent, and a six-month trend. Paychecks and other income deposited into connected checking or savings accounts are added automatically, and you can add or remove income entries yourself.</p>
+      {error && <p className="form-error" role="alert">{error}</p>}
+    </section>
+  )
+}
+
+IncomeSetting.propTypes = { enabled: PropTypes.bool.isRequired, onChange: PropTypes.func.isRequired }
+
+export default function Admin({ categories, onCategoriesChanged, onSynced, showIncome, onShowIncomeChange }) {
   const total = categories.filter(c => c.Active).reduce((sum, c) => sum + c.MonthlyBudget, 0)
 
   return (
@@ -198,6 +233,7 @@ export default function Admin({ categories, onCategoriesChanged, onSynced }) {
         </div>
       </section>
       <Suggestions onAdded={onCategoriesChanged} />
+      <IncomeSetting enabled={showIncome} onChange={onShowIncomeChange} />
       <Accounts onSynced={onSynced} />
     </div>
   )
@@ -207,4 +243,6 @@ Admin.propTypes = {
   categories: PropTypes.arrayOf(categoryShape).isRequired,
   onCategoriesChanged: PropTypes.func.isRequired,
   onSynced: PropTypes.func.isRequired,
+  showIncome: PropTypes.bool.isRequired,
+  onShowIncomeChange: PropTypes.func.isRequired,
 }

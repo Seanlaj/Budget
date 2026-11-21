@@ -336,6 +336,76 @@ tr.split-row, tr.split-row:hover { background: #f6f9fd; }
 .split-remember input { width: 18px; height: 18px; flex: 0 0 auto; }
 .split-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
+.cashflow-panel { margin-bottom: 20px; padding: 28px; }
+.cashflow-hero { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.2fr); gap: 28px; align-items: center; }
+.savings-ring { position: relative; width: 132px; height: 132px; }
+.savings-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.savings-ring circle { fill: none; stroke-width: 12; }
+.ring-track { stroke: #e9ede9; }
+.ring-fill { stroke-linecap: round; transition: stroke-dashoffset .8s ease; }
+.savings-ring.saved .ring-fill { stroke: #2d9260; }
+.savings-ring.over .ring-fill { stroke: #c84747; }
+.savings-ring.empty .ring-fill { stroke: transparent; }
+.ring-copy { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring-copy strong { font-size: 1.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.ring-copy span { margin-top: 4px; color: #778078; font-size: .68rem; font-weight: 650; text-transform: uppercase; letter-spacing: .04em; }
+.savings-ring.saved .ring-copy strong { color: #187044; }
+.savings-ring.over .ring-copy strong { color: #b23333; }
+.cashflow-net { display: grid; gap: 6px; }
+.cashflow-label { color: #778078; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.cashflow-net strong { font-size: 2.2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cashflow-compare { font-size: .84rem; font-weight: 650; }
+.cashflow-compare.up { color: #187044; }
+.cashflow-compare.down { color: #b23333; }
+.cashflow-bars { display: grid; gap: 14px; }
+.flow-bar-copy { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; font-size: .84rem; }
+.flow-bar-copy strong { font-variant-numeric: tabular-nums; }
+.flow-track { height: 12px; overflow: hidden; border-radius: 6px; background: #e9ede9; }
+.flow-track span { display: block; height: 100%; border-radius: inherit; transition: width .8s ease; }
+.flow-income { background: linear-gradient(90deg, #2d9260, #4cbb82); }
+.flow-spent { background: linear-gradient(90deg, #d58a2e, #e9ad5c); }
+.flow-spent.over { background: linear-gradient(90deg, #c84747, #e06b6b); }
+.cashflow-trend { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-top: 28px; padding-top: 20px; border-top: 1px solid #e7ebe7; }
+.trend-col { display: grid; grid-template-rows: 56px 56px auto auto; justify-items: center; border-radius: 6px; padding: 6px 0; }
+.trend-col.current { background: #f2f7f3; }
+.trend-half { display: flex; width: 60%; max-width: 44px; }
+.trend-half.up { align-items: flex-end; border-bottom: 1px solid #cfd7d1; }
+.trend-half.down { align-items: flex-start; }
+.trend-half span { display: block; width: 100%; min-height: 3px; }
+.trend-half.up span { border-radius: 4px 4px 0 0; background: #2d9260; }
+.trend-half.down span { border-radius: 0 0 4px 4px; background: #c84747; }
+.trend-value { margin-top: 6px; font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.trend-label { color: #778078; font-size: .72rem; font-weight: 650; text-transform: uppercase; }
+.income-list { margin-top: 20px; }
+.income-list summary { color: #2c3a31; font-size: .86rem; font-weight: 650; cursor: pointer; }
+.income-list ul { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.income-list li { display: grid; grid-template-columns: 90px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; border: 1px solid #e6eae6; border-radius: 6px; padding: 8px 10px 8px 14px; font-size: .86rem; }
+.income-date { color: #778078; font-variant-numeric: tabular-nums; }
+.income-source { overflow-wrap: anywhere; }
+.income-list li strong { color: #187044; font-variant-numeric: tabular-nums; }
+.cashflow-panel > .empty-note { margin-top: 20px; }
+.income-form { display: grid; grid-template-columns: 160px minmax(0, 1fr) 150px auto; gap: 12px; align-items: end; margin-bottom: 24px; }
+.income-form label { display: flex; flex-direction: column; gap: 6px; color: #3d4840; font-size: .82rem; font-weight: 650; }
+.income-form input { height: 40px; }
+.income-form-actions { display: flex; gap: 8px; }
+.income-form-actions button { min-height: 40px; }
+.income-form .form-error { grid-column: 1 / -1; margin: 0; }
+
+.switch { position: relative; display: inline-flex; align-items: center; gap: 10px; font-size: .86rem; font-weight: 650; cursor: pointer; }
+.switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.switch-track { position: relative; width: 44px; height: 24px; border-radius: 12px; background: #cfd7d1; transition: background .2s; }
+.switch-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .2s; }
+.switch input:checked + .switch-track { background: #1f7a4d; }
+.switch input:checked + .switch-track::after { transform: translateX(20px); }
+.switch input:focus-visible + .switch-track { outline: 2px solid #1f7a4d; outline-offset: 2px; }
+.switch input:disabled + .switch-track { opacity: .6; }
+
+@media (max-width: 820px) {
+  .cashflow-hero { grid-template-columns: auto minmax(0, 1fr); }
+  .cashflow-bars { grid-column: 1 / -1; }
+  .income-form { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 820px) {
   .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -385,6 +455,17 @@ tr.split-row, tr.split-row:hover { background: #f6f9fd; }
   tr.split-row td { display: block; }
   tr.split-row td::before { display: none; }
   .split-part { grid-template-columns: minmax(0, 1fr) 100px; }
+  .cashflow-panel { padding: 22px 18px; }
+  .cashflow-panel .panel-heading { flex-wrap: wrap; }
+  .cashflow-hero { gap: 18px; }
+  .savings-ring { width: 104px; height: 104px; }
+  .ring-copy strong { font-size: 1.25rem; }
+  .cashflow-net strong { font-size: 1.7rem; }
+  .cashflow-trend { gap: 4px; }
+  .trend-value { font-size: .62rem; }
+  .income-list li { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .income-date { grid-column: 1 / -1; font-size: .76rem; }
+  .income-form { grid-template-columns: 1fr; }
 }
 
 /* Dark mode */
@@ -425,6 +506,16 @@ tr.split-row, tr.split-row:hover { background: #f6f9fd; }
 [data-theme="dark"] .items-placeholder { color: #6f7d74; }
 [data-theme="dark"] .source-tag { background: #1d2a3d; color: #9cc0ee; }
 [data-theme="dark"] .progress-track { background: #29332d; }
+[data-theme="dark"] .ring-track, [data-theme="dark"] .flow-track { stroke: #29332d; background: #29332d; }
+[data-theme="dark"] .savings-ring.saved .ring-copy strong, [data-theme="dark"] .cashflow-compare.up, [data-theme="dark"] .income-list li strong { color: #5fd197; }
+[data-theme="dark"] .savings-ring.over .ring-copy strong, [data-theme="dark"] .cashflow-compare.down { color: #f08a8a; }
+[data-theme="dark"] .cashflow-trend { border-color: #29332d; }
+[data-theme="dark"] .trend-col.current { background: #1f2a23; }
+[data-theme="dark"] .trend-half.up { border-color: #364239; }
+[data-theme="dark"] .income-list summary, [data-theme="dark"] .income-form label { color: #c9d5cd; }
+[data-theme="dark"] .income-list li { border-color: #29332d; }
+[data-theme="dark"] .switch-track { background: #364239; }
+[data-theme="dark"] .switch input:checked + .switch-track { background: #2d9260; }
 [data-theme="dark"] .positive, [data-theme="dark"] .form-note, [data-theme="dark"] .split-left.done { color: #5fd197; }
 [data-theme="dark"] .negative { color: #f08a8a !important; }
 [data-theme="dark"] .form-error, [data-theme="dark"] .alert-banner { color: #f3a0a0; }

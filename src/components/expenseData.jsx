@@ -98,6 +98,36 @@ export function syncNow(refreshBanks = false) {
   return postJson('/api/plaid/sync', { refresh: refreshBanks }, 'Sync failed. Please try again.')
 }
 
+export async function getSettings() {
+  const response = await fetch(`${API_URL}/api/settings`)
+  if (!response.ok) throw new Error('Settings could not be loaded.')
+  return response.json()
+}
+
+export function saveSettings(settings) {
+  return postJson('/api/settings', settings, 'The setting could not be saved.')
+}
+
+export async function getCashflow(month, year) {
+  const response = await fetch(`${API_URL}/api/cashflow?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`)
+  if (!response.ok) throw new Error('Income could not be loaded.')
+  return response.json()
+}
+
+export async function addIncome(income) {
+  const response = await fetch(`${API_URL}/api/income/create`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(income),
+  })
+  const body = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(body.error || 'The income could not be saved.')
+}
+
+export function removeIncome(id) {
+  return postJson('/api/income/delete', { id }, 'The income could not be removed.')
+}
+
 export function removeConnection(itemId) {
   return postJson('/api/plaid/remove', { itemId }, 'The connection could not be removed.')
 }

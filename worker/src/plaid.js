@@ -1,4 +1,4 @@
-import { applySplitRule, buildHistoryRules, buildPlaidMatches, categorize, merchantKey, shouldSkip } from "./categorize.js";
+import { applySplitRule, buildHistoryRules, buildPlaidMatches, categorize, isIncome, merchantKey, shouldSkip } from "./categorize.js";
 
 const SYNCABLE_TYPES = new Set(["depository", "credit"]);
 const TIME_ZONE = "America/Phoenix";
@@ -186,6 +186,7 @@ export async function syncItem(env, item) {
   // A posted transaction replaces its pending version; the pending row is converted in place below.
   const replacedPending = new Set(updates.added.map((t) => t.pending_transaction_id).filter(Boolean));
   for (const { transaction_id } of updates.removed) {
+    statements.push(env.DB.prepare("DELETE FROM Income WHERE PlaidTransactionId = ?").bind(transaction_id));
     if (replacedPending.has(transaction_id)) continue;
     statements.push(
       env.DB.prepare("DELETE FROM Expenses WHERE SplitOf IN (SELECT Id FROM Expenses WHERE PlaidTransactionId = ?)").bind(transaction_id),
@@ -193,6 +194,10 @@ export async function syncItem(env, item) {
     );
   }
   for (const txn of updates.modified) {
+    if (txn.amount < 0) {
+      statements.push(env.DB.prepare("UPDATE Income SET Amount = ?, Date = ?, Pending = ? WHERE PlaidTransactionId = ?")
+        .bind(Number((-txn.amount).toFixed(2)), txn.authorized_date || txn.date, txn.pending ? 1 : 0, txn.transaction_id));
+    }
     if (shouldSkip(txn)) continue;
     statements.push(env.DB.prepare(
       `UPDATE Expenses SET Amount = ?, Date = ?, Pending = ? WHERE PlaidTransactionId = ?
@@ -203,7 +208,7 @@ export async function syncItem(env, item) {
   let added = 0;
   if (updates.added.length) {
     const [{ results: accountRows }, { results: ruleRows }, { results: historyRows }, { results: manualRows }, { results: categoryRows }, { results: splitRows }, { results: pendingRows }] = await env.DB.batch([
-      env.DB.prepare("SELECT AccountId, Name, Mask FROM PlaidAccounts WHERE ItemId = ?").bind(item.ItemId),
+      env.DB.prepare("SELECT AccountId, Name, Mask, Type FROM PlaidAccounts WHERE ItemId = ?").bind(item.ItemId),
       env.DB.prepare("SELECT MerchantKey, Category FROM CategoryRules"),
       env.DB.prepare(
         "SELECT TRIM(Store) AS Store, Category, COUNT(*) AS n FROM Expenses WHERE Source IS NULL OR Source = 'manual' GROUP BY LOWER(TRIM(Store)), Category"
@@ -235,6 +240,10 @@ export async function syncItem(env, item) {
     for (const txn of updates.added) {
       const account = accounts.get(txn.account_id);
       const isoDate = txn.authorized_date || txn.date;
+      if (account && isIncome(txn, account.Type)) {
+        if (isoDate >= item.ImportFrom) statements.push(incomeInsert(env, txn));
+        continue;
+      }
       if (!account || shouldSkip(txn) || isoDate < item.ImportFrom) {
         if (txn.pending_transaction_id) {
           statements.push(
@@ -303,6 +312,48 @@ export async function syncItem(env, item) {
   ).bind(updates.cursor, item.ItemId));
   await env.DB.batch(statements);
   return { itemId: item.ItemId, status: "ok", added, removed: updates.removed.length };
+}
+
+function incomeInsert(env, txn) {
+  return env.DB.prepare(
+    `INSERT OR IGNORE INTO Income (Date, Amount, Source, Origin, PlaidTransactionId, AccountId, Pending)
+     VALUES (?, ?, ?, 'plaid', ?, ?, ?)`
+  ).bind(
+    txn.authorized_date || txn.date, Number((-txn.amount).toFixed(2)), (txn.merchant_name || txn.name || "Deposit").slice(0, 100),
+    txn.transaction_id, txn.account_id, txn.pending ? 1 : 0
+  );
+}
+
+// Sync cursors were already past older deposits when income tracking was added, so this reads them directly.
+export async function backfillIncome(env) {
+  const [{ results: items }, { results: accounts }] = await env.DB.batch([
+    env.DB.prepare("SELECT ItemId, AccessToken, ImportFrom FROM PlaidItems WHERE Status = 'ok'"),
+    env.DB.prepare("SELECT AccountId, Type FROM PlaidAccounts")
+  ]);
+  const accountTypes = new Map(accounts.map((a) => [a.AccountId, a.Type]));
+  const end = localIsoDate();
+  const statements = [];
+  for (const item of items) {
+    try {
+      const accessToken = await decryptToken(env, item.ItemId, item.AccessToken);
+      let offset = 0;
+      let total = Infinity;
+      while (offset < total) {
+        const page = await plaid(env, "/transactions/get", {
+          access_token: accessToken, start_date: item.ImportFrom, end_date: end, options: { count: 500, offset }
+        });
+        total = page.total_transactions;
+        offset += page.transactions.length;
+        for (const txn of page.transactions) {
+          if (isIncome(txn, accountTypes.get(txn.account_id))) statements.push(incomeInsert(env, txn));
+        }
+        if (!page.transactions.length) break;
+      }
+    } catch (err) {
+      console.error("income backfill failed", item.ItemId, err.code || err.message);
+    }
+  }
+  if (statements.length) await env.DB.batch(statements);
 }
 
 // Asks Plaid to pull new transactions from each bank now instead of waiting for its own schedule.

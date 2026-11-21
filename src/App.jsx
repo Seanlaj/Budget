@@ -3,10 +3,11 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import './App.css'
 import ExpenseModal from './components/ExpenseModal'
 import Table from './components/Table'
-import { getCategories, getTableData } from './components/expenseData'
+import { getCategories, getSettings, getTableData, saveSettings } from './components/expenseData'
 import RemainingBalance from './components/RemainingBalance'
 import Title from './components/Title'
 import Admin from './components/Admin'
+import Cashflow from './components/Cashflow'
 
 // Banks using OAuth redirect back with this parameter; the connection finishes on the settings screen.
 const returningFromBank = window.location.search.includes('oauth_state_id=')
@@ -18,6 +19,16 @@ function App() {
   const [categories, setCategories] = useState([])
   const [showSettings, setShowSettings] = useState(returningFromBank)
   const [showAddExpense, setShowAddExpense] = useState(false)
+  const [showIncome, setShowIncome] = useState(false)
+
+  useEffect(() => {
+    getSettings().then(settings => setShowIncome(settings.showIncome)).catch(() => {})
+  }, [])
+
+  const changeShowIncome = useCallback(async (value) => {
+    await saveSettings({ showIncome: value })
+    setShowIncome(value)
+  }, [])
 
   const loadCategories = useCallback(async () => {
     try {
@@ -61,7 +72,8 @@ function App() {
       <main className="app-shell">
         <Title getExpenseData={loadExpenses} expenseData={expenseData} settingsOpen onToggleSettings={() => setShowSettings(false)} />
         {status.error && <div className="alert-banner" role="alert">{status.error}</div>}
-        <Admin categories={categories} onCategoriesChanged={reloadAll} onSynced={() => loadExpenses(expenseData)} />
+        <Admin categories={categories} onCategoriesChanged={reloadAll} onSynced={() => loadExpenses(expenseData)}
+          showIncome={showIncome} onShowIncomeChange={changeShowIncome} />
       </main>
     )
   }
@@ -75,6 +87,7 @@ function App() {
         <div><span>Available</span><strong className={totals.remaining < 0 ? 'negative' : 'positive'}>{totals.remaining.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</strong></div>
       </section>
       {status.error && <div className="alert-banner" role="alert">{status.error}</div>}
+      {showIncome && <Cashflow month={expenseData.Month} year={expenseData.Year} spent={totals.spent} expenses={expenseData.Expenses} />}
       <RemainingBalance expenseData={expenseData} categories={activeCategories} />
       <Table expenseData={expenseData} setExpenseData={loadExpenses} loading={status.loading} categories={activeCategories.map(c => c.Name)} />
       <button type="button" className="add-expense-fab" onClick={() => setShowAddExpense(true)} aria-label="Add an expense" title="Add an expense">+</button>
